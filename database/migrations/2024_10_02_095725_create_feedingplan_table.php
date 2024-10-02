@@ -1,0 +1,25 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up()
+    {
+        Schema::create('feedingplan', function (Blueprint $table) {
+            $table->increments('feedingplanID');
+            $table->time('time');
+            $table->string('frequency');
+            $table->boolean('repeat');
+            $table->timestamps();
+        });
+    }
+
+    public function down()
+    {
+        Schema::dropIfExists('feedingplan');
+    }
+
+};
