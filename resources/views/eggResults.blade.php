@@ -3,7 +3,7 @@
 @section('title', 'Egg Grading Results')
 
 @section('content_header')
-    <h1>Egg Grading Results</h1>
+<h1>Egg Grading Results</h1>
 @stop
 
 @section('content')
@@ -13,21 +13,26 @@
             <h1>Egg Grading Results</h1>
 
             <!-- Date Filter Form -->
-            {{-- method="GET" action="{{ route('grading-results') }}"  --}}
-            <form class="mb-4">
-                <div class="form-row">
-                    <div class="col">
-                        <input type="date" name="start_date" class="form-control" placeholder="Start Date">
+            <div class="mb-4 d-flex justify-content-between align-items-center">
+                <!-- Date Filter Form -->
+                <form class="d-flex" method="GET">
+                    <div class="form-row">
+                        <div class="col">
+                            <input type="date" name="start_date" class="form-control" placeholder="Start Date"
+                                value="{{ request('start_date') }}">
+                        </div>
+                        <div class="col">
+                            <input type="date" name="end_date" class="form-control" placeholder="End Date"
+                                value="{{ request('end_date') }}">
+                        </div>
+                        <div class="col">
+                            <button type="submit" class="btn btn-primary">Filter</button>
+                        </div>
                     </div>
-                    <div class="col">
-                        <input type="date" name="end_date" class="form-control" placeholder="End Date">
-                    </div>
-                    <div class="col">
-                        <button type="submit" class="btn btn-primary">Filter</button>
-                    </div>
-                </div>
-            </form>
+                </form>
 
+                <a href="{{ route('egg_grading.create') }}" class="btn btn-success">Add Eggs</a>
+            </div>
             <table class="table table-bordered">
                 <thead>
                     <tr>
@@ -43,64 +48,40 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Hardcoded values -->
+                    @forelse ($eggs as $egg)
                     <tr>
-                        <td>Chicken</td>
-                        <td>Free-range chicken eggs</td>
-                        <td>2024-07-01</td>
-                        <td>2024-07-15</td>
-                        <td>A</td>
-                        <td>50-60g</td>
-                        <td>$0.50</td>
-                        <td>300</td>
+                        <td>{{ $egg->type }}</td>
+                        <td>{{ $egg->description }}</td>
+                        <td>{{ \Carbon\Carbon::parse($egg->receivedDate)->format('Y-m-d') }}</td>
+                        <td>{{ \Carbon\Carbon::parse($egg->updated_at)->format('Y-m-d') }}</td>
+                        <td>{{ $egg->eggGrade->grade ?? 'N/A' }}</td>
+                        <td>{{ $egg->eggGrade->estimatedWeightRange }}</td>
+                        <td>${{ number_format($egg->eggGrade->price, 2) }}</td>
+                        <td>{{ $egg->quantity }}</td>
                         <td>
-                            <button type="button" class="btn btn-primary"><i class="fas fa-edit"></i></button>
-                            <button type="button" class="btn btn-danger"><i class="fas fa-trash"></i></button>
+                            {{-- <a href="{{ route('egg_grading.edit', $egg->eggID) }}" class="btn btn-primary"><i
+                                    class="fas fa-edit"></i></a> --}}
+                            {{-- <form action="{{ route('egg_grading.destroy', $egg->eggID) }}" method="POST"
+                                style="display:inline;">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i></button>
+                            </form> --}}
                         </td>
                     </tr>
+                    @empty
                     <tr>
-                        <td>Chicken</td>
-                        <td>Caged eggs</td>
-                        <td>2024-07-02</td>
-                        <td>2024-07-25</td>
-                        <td>B</td>
-                        <td>60-70g</td>
-                        <td>$0.60</td>
-                        <td>250</td>
-                        <td>
-                            <button type="button" class="btn btn-primary"><i class="fas fa-edit"></i></button>
-                            <button type="button" class="btn btn-danger"><i class="fas fa-trash"></i></button>
-                        </td>
+                        <td colspan="9" class="text-center">No eggs found.</td>
                     </tr>
-                    <tr>
-                        <td>Chicken</td>
-                        <td>Organic Eggs</td>
-                        <td>2024-07-03</td>
-                        <td>2024-07-30</td>
-                        <td>C</td>
-                        <td>10-15g</td>
-                        <td>$0.20</td>
-                        <td>600</td>
-                        <td>
-                            <button type="button" class="btn btn-primary"><i class="fas fa-edit"></i></button>
-                            <button type="button" class="btn btn-danger"><i class="fas fa-trash"></i></button>
-                        </td>
-                    </tr>
+                    @endforelse
                 </tbody>
             </table>
-            
-            <!-- Pagination (Dummy Links) -->
+
+            <!-- Pagination -->
             <nav aria-label="Page navigation example">
-                <ul class="pagination">
-                    <li class="page-item"><a class="page-link" href="#">Previous</a></li>
-                    <li class="page-item"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                    <li class="page-item"><a class="page-link" href="#">Next</a></li>
-                </ul>
+                {{ $eggs->links() }}
             </nav>
 
-            <button type="submit" class="btn btn-success mt-2" style="float: right">Add Eggs</button>
         </div>
     </div>
 </div>

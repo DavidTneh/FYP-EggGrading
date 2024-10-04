@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\EggGradingController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -44,9 +45,12 @@ Route::get('/eggGrading', function () {
     return view('eggGrading');
 });
 
-Route::get('/eggResults', function () {
-    return view('eggResults');
-});
+Route::get('/eggResults', [EggGradingController::class, 'index'])->name('/eggResults');
+Route::get('/eggs/create', [EggGradingController::class, 'create'])->name('egg_grading.create');
+Route::post('/eggs', [EggGradingController::class, 'store'])->name('egg_grading.store');
+Route::get('/eggs/{id}/edit', [EggGradingController::class, 'edit'])->name('egg_grading.edit');
+Route::put('/eggs/{id}', [EggGradingController::class, 'update'])->name('egg_grading.update');
+Route::delete('/eggs/{id}', [EggGradingController::class, 'destroy'])->name('egg_grading.destroy');
 
 Route::get('/addResults', function () {
     return view('addResults');

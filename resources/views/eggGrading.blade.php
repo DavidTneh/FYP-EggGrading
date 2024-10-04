@@ -44,7 +44,8 @@
         <div class="col-md-12 text-center">
             <button class="btn btn-success" id="startGrading" onclick="startGrading()">Start Grading</button>
             <button class="btn btn-danger" id="stopGrading" onclick="stopGrading()" disabled>Stop Grading</button>
-            <button class="btn btn-primary" id="viewResults">View Results</button>
+
+            <a href="/eggResults" class="btn btn-primary" id="viewResults">View Results</a>
         </div>
     </div>
 </div>
