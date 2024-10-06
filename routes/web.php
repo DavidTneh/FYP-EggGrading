@@ -48,9 +48,10 @@ Route::get('/eggGrading', function () {
 Route::get('/eggResults', [EggGradingController::class, 'index'])->name('/eggResults');
 Route::get('/eggs/create', [EggGradingController::class, 'create'])->name('egg_grading.create');
 Route::post('/eggs', [EggGradingController::class, 'store'])->name('egg_grading.store');
-Route::get('/eggs/{id}/edit', [EggGradingController::class, 'edit'])->name('egg_grading.edit');
-Route::put('/eggs/{id}', [EggGradingController::class, 'update'])->name('egg_grading.update');
-Route::delete('/eggs/{id}', [EggGradingController::class, 'destroy'])->name('egg_grading.destroy');
+Route::get('/egg-grading/batch-edit', [EggGradingController::class, 'batchEdit'])->name('egg_grading.batchEdit');
+Route::put('/egg-grading/batch-update', [EggGradingController::class, 'batchUpdate'])->name('egg_grading.batchUpdate');
+Route::delete('/egg-grading/batch-delete', [EggGradingController::class, 'batchDelete'])->name('egg_grading.batchDelete');
+
 
 Route::get('/addResults', function () {
     return view('addResults');

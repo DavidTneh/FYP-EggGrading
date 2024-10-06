@@ -16,8 +16,6 @@ return new class extends Migration
             $table->text('description');
             $table->unsignedInteger('cageID');
             $table->foreign('cageID')->references('cageID')->on('cage');
-            $table->date('receivedDate');
-            $table->timestamp('last_updated');
             $table->timestamps();
         });
     }
