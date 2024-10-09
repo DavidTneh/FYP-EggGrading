@@ -1,9 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\EggGradingController;
+use App\Http\Middleware\RedirectIfAuthenticated;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -15,8 +17,11 @@ use App\Http\Controllers\EggGradingController;
 |
 */
 
+
+
+
 Route::get('/', function () {
-    return view('welcome');
+    return redirect('eggGrade/login');
 });
 
 Route::get('/home', [HomeController::class, 'index']);
@@ -37,10 +42,19 @@ Route::get('/login', function () {
     return view('login');
 });
 
+Route::prefix('eggGrade')->name('admin.')->middleware(RedirectIfAuthenticated::class)->group(function () {
+    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+    Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('forgot_password');
+    Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('send_reset_link');
+    Route::get('/reset-password/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
+    Route::post('/reset-password/{token}', [AuthController::class, 'resetPassword'])->name('password.reset.post');
+});
+
 Route::get('/register', function () {
     return view('register');
 });
-
+ 
 Route::get('/eggGrading', function () {
     return view('eggGrading');
 });

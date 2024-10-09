@@ -52,7 +52,7 @@
                     <tr>
                         <td>{{ $egg->type }}</td>
                         <td>{{ $egg->description }}</td>
-                        <td>{{ $egg->date }}</td>
+                        <td>{{ $egg->created_at }}</td>
                         <td>{{ $egg->updated_at }}</td>
                         <td>{{ $egg->eggGrade->grade ?? 'N/A' }}</td>
                         <td>{{ $egg->eggGrade->estimatedWeightRange }}</td>
@@ -60,15 +60,15 @@
                         <td>{{ $egg->quantity }}</td>
                         <td>
                             <div class="d-flex">
-                                <a href="{{ route('egg_grading.batchEdit', ['created_at' => $egg->created_at->format('Y-m-d H:i:s'), 'type' => $egg->type, 'description' => $egg->description, 'eggGradeID' => $egg->eggGradeID]) }}"
-                                    class="btn btn-primary mr-2">
+                                <a class="btn btn-primary mr-2" href="{{ route('egg_grading.batchEdit', ['created_at' => $egg->created_at->format('Y-m-d H:i:s'), 'type' => $egg->type, 'description' => $egg->description, 'eggGradeID' => $egg->eggGradeID]) }}">
                                     <i class="fas fa-edit"></i>
                                 </a>
+
                                 <form action="{{ route('egg_grading.batchDelete') }}" method="POST"
                                     style="display:inline;">
                                     @csrf
                                     @method('DELETE')
-                                    <input type="hidden" name="created_at" value="{{ $egg->created_at }}">
+                                    <input type="hidden" name="created_at" value="{{ $egg->created_at->format('Y-m-d H:i:s') }}">
                                     <input type="hidden" name="type" value="{{ $egg->type }}">
                                     <input type="hidden" name="description" value="{{ $egg->description }}">
                                     <input type="hidden" name="eggGradeID" value="{{ $egg->eggGradeID }}">

@@ -14,7 +14,7 @@
             <form action="{{ route('egg_grading.batchUpdate') }}" method="POST">
                 @csrf
                 @method('PUT')
-
+                        
                 <!-- Hidden fields for batch criteria -->
                 <input type="hidden" name="receivedDate" value="{{ $egg->created_at }}">
                 <input type="hidden" name="type" value="{{ $egg->type }}">
@@ -26,8 +26,7 @@
                     <label for="new_grade">Grade</label>
                     <select name="new_grade" class="form-control" id="new_grade">
                         @foreach($grades as $grade)
-                        <option value="{{ $grade->eggGradeID }}" {{ $egg->eggGradeID == $grade->eggGradeID ? 'selected'
-                            : '' }}>
+                        <option value="{{ $grade->eggGradeID }}" {{ $egg->eggGradeID == $grade->eggGradeID ? 'selected' : '' }}>
                             {{ $grade->grade }}
                         </option>
                         @endforeach

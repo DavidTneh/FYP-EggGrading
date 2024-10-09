@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Jenssegers\Mongodb\Eloquent\Model as Eloquent;
 
-class Cage extends Model
+
+class Cage extends Eloquent
 {
+    protected $connection = 'mongodb';
     protected $table = 'cage';
     protected $primaryKey = 'cageID';
 

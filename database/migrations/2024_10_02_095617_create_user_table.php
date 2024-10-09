@@ -19,13 +19,33 @@ return new class extends Migration
             $table->foreign('roleID')->references('roleID')->on('role')->onDelete('cascade');
             $table->text('address');
             $table->string('image')->nullable();
-            $table->timestamps();
+            $table->boolean('status')->default(true);
+            $table->string('session_id')->nullable();
+            $table->timestamp('reset_time')->nullable(); // Correct way to add reset_time column
+            $table->timestamps(); // created_at and updated_at
+        });
+
+        Schema::create('password_reset_tokens', function (Blueprint $table) {
+            $table->string('email')->primary();
+            $table->string('token');
+            $table->timestamp('created_at')->nullable();
+        });
+
+        Schema::create('sessions', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->foreignId('user_id')->nullable()->index();
+            $table->string('ip_address', 45)->nullable();
+            $table->text('user_agent')->nullable();
+            $table->longText('payload');
+            $table->integer('last_activity')->index();
         });
     }
 
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists('user');
+        Schema::dropIfExists('password_reset_tokens');
+        Schema::dropIfExists('sessions');
     }
-
 };
+

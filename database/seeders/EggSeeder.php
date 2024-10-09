@@ -4,34 +4,17 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+
 
 class EggSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * @return void
-     */
     public function run()
     {
-        DB::table('eggs')->insert([
-            [
-                'type' => 'Fertilized',
-                'eggGradeID' => 1,
-                'description' => 'High-quality fertilized eggs',
-                'cageID' => 1,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'type' => 'Unfertilized',
-                'eggGradeID' => 2,
-                'description' => 'Standard-quality unfertilized eggs',
-                'cageID' => 2,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
+        $eggGrade = DB::collection('eggGrade')->where('name', 'Grade A')->first();
+        $cage = DB::collection('cage')->where('name', 'Cage A')->first();
+
+        DB::collection('eggs')->insert([
+            ['type' => 'Chicken Egg', 'eggGradeID' => $eggGrade['_id'], 'description' => 'Large, brown', 'cageID' => $cage['_id']],
         ]);
     }
 }

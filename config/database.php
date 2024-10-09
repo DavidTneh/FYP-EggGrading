@@ -15,7 +15,7 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'mysql'),
+    'default' => env('DB_CONNECTION', 'mongodb'), // Make sure this is set to mongodb
 
     /*
     |--------------------------------------------------------------------------
@@ -92,6 +92,21 @@ return [
             // 'encrypt' => env('DB_ENCRYPT', 'yes'),
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
+
+
+        'mongodb' => [
+            'driver'   => 'mongodb',
+            'dsn'      => env('MONGO_DB_URI', ''),
+            'database' => env('MONGO_DB_DATABASE', 'eggGradePro'),
+            'options'  => [
+                'authSource' => env('MONGO_DB_AUTHENTICATION_DATABASE', 'admin'),
+                'retryWrites' => true,
+                'w' => 'majority',
+            ],
+        ],
+
+
+
 
     ],
 

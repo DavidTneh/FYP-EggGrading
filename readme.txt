@@ -16,6 +16,8 @@ composer update
 Database Reset and migrations
 php artisan migrate:reset
 php artisan app:run-migrations
+php artisan db:seed
+
 
 ----------------------------------------------------------------------------------------------------------------
 
@@ -25,4 +27,5 @@ php artisan app:run-migrations
 
 Login crendeitals:-
 
-Admin:
+Email: admin@example.com
+Password: password

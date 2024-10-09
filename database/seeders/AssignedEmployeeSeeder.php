@@ -4,21 +4,17 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+
 
 class AssignedEmployeeSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * @return void
-     */
     public function run()
     {
-        DB::table('assignedEmployee')->insert([
-            ['userID' => 1, 'scheduleID' => 1],
-            ['userID' => 2, 'scheduleID' => 2],
+        $user = DB::collection('user')->where('email', 'jane.smith@example.com')->first();
+        $schedule = DB::collection('taskScheduling')->where('taskName', 'Egg Collection')->first();
+
+        DB::collection('assignedEmployee')->insert([
+            ['userID' => $user['_id'], 'scheduleID' => $schedule['_id']],
         ]);
     }
-
 }

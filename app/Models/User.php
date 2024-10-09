@@ -2,10 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Jenssegers\Mongodb\Eloquent\Model as Eloquent;
 
-class User extends Model
+class User extends Eloquent
 {
+    protected $connection = 'mongodb';
     protected $table = 'user';
     protected $primaryKey = 'userID';
 
