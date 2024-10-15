@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use Carbon\Carbon;
-use Jenssegers\Mongodb\Eloquent\Model as Eloquent;
+use Illuminate\Database\Eloquent\Model;
 
 
-class LoginAttempt extends Eloquent
+
+class LoginAttempt extends Model
 {
-    protected $connection = 'mongodb';
     
     protected $fillable = ['email', 'attempts', 'total_attempts', 'block_attempts', 'blocked_until'];
 

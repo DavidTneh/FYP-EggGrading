@@ -21,14 +21,14 @@ use App\Http\Middleware\RedirectIfAuthenticated;
 
 
 Route::get('/', function () {
-    return redirect('eggGrade/login');
+    return redirect('admin/login');
 });
 
-Route::get('/home', [HomeController::class, 'index']);
-Route::get('/home/create', [HomeController::class, 'create']);
-Route::post('/home/store', [HomeController::class, 'store']);
-Route::get('/home/edit/{id}', [HomeController::class, 'edit']);
-Route::post('/home/update/{id}', [HomeController::class, 'update']);
+Route::get('/home', [AuthController::class, 'showLoginForm']);
+// Route::get('/home/create', [HomeController::class, 'create']);
+// Route::post('/home/store', [HomeController::class, 'store']);
+// Route::get('/home/edit/{id}', [HomeController::class, 'edit']);
+// Route::post('/home/update/{id}', [HomeController::class, 'update']);
 
 Route::get('/admin', function () {
     return view('admin');
@@ -42,13 +42,19 @@ Route::get('/login', function () {
     return view('login');
 });
 
-Route::prefix('eggGrade')->name('admin.')->middleware(RedirectIfAuthenticated::class)->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(RedirectIfAuthenticated::class)->group(function () {
+    // Admin Login Routes
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+
+    // Forgot Password Routes
     Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('forgot_password');
     Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('send_reset_link');
+
+    // Password Reset Routes
     Route::get('/reset-password/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
     Route::post('/reset-password/{token}', [AuthController::class, 'resetPassword'])->name('password.reset.post');
+    Route::get('/logout', [AuthController::class, 'logout'])->name('admin.logout');
 });
 
 Route::get('/register', function () {
@@ -65,7 +71,6 @@ Route::post('/eggs', [EggGradingController::class, 'store'])->name('egg_grading.
 Route::get('/egg-grading/batch-edit', [EggGradingController::class, 'batchEdit'])->name('egg_grading.batchEdit');
 Route::put('/egg-grading/batch-update', [EggGradingController::class, 'batchUpdate'])->name('egg_grading.batchUpdate');
 Route::delete('/egg-grading/batch-delete', [EggGradingController::class, 'batchDelete'])->name('egg_grading.batchDelete');
-
 
 Route::get('/addResults', function () {
     return view('addResults');

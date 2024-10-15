@@ -9,9 +9,19 @@ class RoleSeeder extends Seeder
 {
     public function run()
     {
-        DB::collection('role')->insert([
-            ['roleName' => 'Admin', 'roleDescription' => 'Full system access'],
-            ['roleName' => 'Employee', 'roleDescription' => 'Limited access based on assigned tasks'],
+        DB::table('role')->insert([
+            [
+                'roleName' => 'Admin',
+                'roleDescription' => 'Administrator with full permissions',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'roleName' => 'Employee',
+                'roleDescription' => 'Regular employee with limited permissions',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ]);
     }
 }

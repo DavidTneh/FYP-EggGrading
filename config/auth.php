@@ -38,15 +38,9 @@ return [
     'guards' => [
         'web' => [
             'driver' => 'session',
-            'provider' => 'user',
-        ],
-
-        'admin' => [
-            'driver' => 'session',
-            'provider' => 'user',
+            'provider' => 'users',  // This is the default provider for the User model
         ],
     ],
-
     /*
     |--------------------------------------------------------------------------
     | User Providers
@@ -67,13 +61,8 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => App\Models\User::class,
+            'model' => App\Models\User::class,  // Make sure this points to your User model
         ],
-
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
     ],
 
     /*

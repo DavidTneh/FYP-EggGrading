@@ -2,31 +2,23 @@
 
 namespace App\Models;
 
-use Jenssegers\Mongodb\Eloquent\Model as Eloquent;
+use Illuminate\Database\Eloquent\Model;
 
 
-class Egg extends Eloquent
+class Egg extends Model
 {
-    protected $connection = 'mongodb';
-    // Define the table name if it's not the default 'eggs'
     protected $table = 'eggs';
+    protected $primaryKey = 'eggID';
 
-    // Specify the primary key, assuming it's 'eggsID' in your table
-    protected $primaryKey = 'eggsID';
-
-    // Enable timestamps
-    public $timestamps = true;
-
-    // Allow mass assignment for these attributes
+    // Enable mass assignment for these attributes
     protected $fillable = [
-        'eggGradeID',
+        'eggGradeID',      // Assuming 'gradeID' is the column in your table
         'type',
         'description',
         'cageID',
         'created_at',
     ];
 
-    // Relationship with the Grade model
     public function eggGrade()
     {
         return $this->belongsTo(EggGrade::class, 'eggGradeID');

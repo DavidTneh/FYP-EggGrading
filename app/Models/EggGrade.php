@@ -2,11 +2,10 @@
 
 namespace App\Models;
 
-use Jenssegers\Mongodb\Eloquent\Model as Eloquent;
+use Illuminate\Database\Eloquent\Model;
 
-class EggGrade extends Eloquent
+class EggGrade extends Model
 {
-    protected $connection = 'mongodb';
     protected $table = 'eggGrade';
     protected $primaryKey = 'eggGradeID';
 }

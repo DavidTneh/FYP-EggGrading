@@ -59,47 +59,44 @@ class AuthController extends Controller
             $loginAttempt->save();
         }
 
+        // Credentials for login
         $credentials = [
             'email' => $request->email,
             'password' => $request->password,
-            'status' => true,
-            'roleID' => 1,
+            'status' => true,  // Add your status condition if necessary
+            'roleID' => 1,     // Add your role condition if necessary
         ];
 
-        if (Auth::guard('admin')->attempt($credentials)) {
+        // Attempt to log in using the default 'web' guard
+        if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
             // Set the session_id for the user
-            $authUser = Auth::guard('admin')->user();
-            $user = User::find($authUser->userID);
+            $authUser = Auth::user();
+            $user = User::find($authUser->userID);  // Ensure you are using the correct ID column
             $user->session_id = Session::getId();
             $user->save();
 
-            // Log the successful login
-            // $this->logUserActivity($authUser->userID, 'login', $request, 'success');
-
-            // Reset attempts after a successful login
+            // Reset login attempts after successful login
             $loginAttempt->delete();
 
             // Redirect after successful login
-            return redirect()->intended(route('admin.products.index'))->with('success', "Welcome Back");
+            return redirect()->intended(route('/admin'))->with('success', "Welcome Back");
         } else {
-            // // Log the failed login attempt
-            // $this->logUserActivity(null, 'login', $request, 'failed');
-
-            // If login fails, increment attempts
+            // Increment attempts if login fails
             $loginAttempt->incrementAttempts();
 
             // Block the user if the attempts exceed 3
             if ($loginAttempt->attempts >= 3) {
-                // Block for 5 min for 3 attempts, 10 min for 6 attempts, 15 min for 9 attempts, etc.
+                // Block for 5 min for 3 attempts, 10 min for 6 attempts, etc.
                 $blockTime = $loginAttempt->block_attempts * 3;
                 $loginAttempt->block($blockTime);
-                // Check if the email exists in the database
+
                 $user = User::where('email', $request->email)->first();
                 if ($user) {
                     Mail::to($user->email)->send(new LoginBlocked($blockTime));
                 }
+
                 return back()->withErrors(['email' => "Too many login attempts. You are blocked for $blockTime minutes."])->withInput();
             }
 
@@ -107,21 +104,22 @@ class AuthController extends Controller
         }
     }
 
+
     public function logout(Request $request)
     {
         $userId = Auth::guard('admin')->id();
 
-        // // Log the logout activity
-        // if ($userId) {
-        //     // Log the logout activity
-        //     $this->logUserActivity($userId, 'logout', $request, 'success');
-        // }
+        // Log the logout activity
+        if ($userId) {
+            // Log the logout activity
+            $this->logUserActivity($userId, 'logout', $request, 'success');
+        }
 
         Auth::guard('admin')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('admin.login');
+        return redirect()->route('/admin/login');
     }
 
     public function showForgotPasswordForm()

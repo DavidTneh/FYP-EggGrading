@@ -2,12 +2,10 @@
 
 namespace App\Models;
 
-use Jenssegers\Mongodb\Eloquent\Model as Eloquent;
+use Illuminate\Database\Eloquent\Model;
 
-
-class CollectionPlan extends Eloquent
+class CollectionPlan extends Model
 {
-    protected $connection = 'mongodb';
     protected $table = 'collectionPlan';
     protected $primaryKey = 'collectionPlanID';
 }

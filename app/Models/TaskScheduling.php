@@ -2,12 +2,10 @@
 
 namespace App\Models;
 
-use Jenssegers\Mongodb\Eloquent\Model as Eloquent;
+use Illuminate\Database\Eloquent\Model;
 
-
-class TaskScheduling extends Eloquent
+class TaskScheduling extends Model
 {
-    protected $connection = 'mongodb';
     protected $table = 'taskScheduling';
     protected $primaryKey = 'taskSchedulingID';
 }

@@ -5,24 +5,27 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-
 class VaccinationTypeSeeder extends Seeder
 {
     public function run()
     {
-        DB::collection('vaccinationtype')->insert([
+        DB::table('vaccinationtype')->insert([
             [
-                'vaccineName' => 'Newcastle Disease Vaccine',
+                'vaccineName' => 'Vaccine A',
                 'methodConsume' => 'Oral',
-                'description' => 'Protects against Newcastle disease',
-                'criteria' => 'All chickens older than 4 weeks',
+                'description' => 'Used for general protection',
+                'criteria' => 'For healthy chickens only',
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
-                'vaccineName' => 'Fowl Pox Vaccine',
+                'vaccineName' => 'Vaccine B',
                 'methodConsume' => 'Injection',
-                'description' => 'Protects against fowl pox',
-                'criteria' => 'All chickens older than 8 weeks',
-            ]
+                'description' => 'Used for specific diseases',
+                'criteria' => 'For chickens at risk',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ]);
     }
 }

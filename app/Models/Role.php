@@ -2,12 +2,10 @@
 
 namespace App\Models;
 
-use Jenssegers\Mongodb\Eloquent\Model as Eloquent;
+use Illuminate\Database\Eloquent\Model;
 
-
-class Role extends Eloquent
+class Role extends Model
 {
-    protected $connection = 'mongodb';
     protected $table = 'role';
     protected $primaryKey = 'roleID';
 

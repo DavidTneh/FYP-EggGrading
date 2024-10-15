@@ -5,16 +5,27 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-
 class EggSeeder extends Seeder
 {
     public function run()
     {
-        $eggGrade = DB::collection('eggGrade')->where('name', 'Grade A')->first();
-        $cage = DB::collection('cage')->where('name', 'Cage A')->first();
-
-        DB::collection('eggs')->insert([
-            ['type' => 'Chicken Egg', 'eggGradeID' => $eggGrade['_id'], 'description' => 'Large, brown', 'cageID' => $cage['_id']],
+        DB::table('eggs')->insert([
+            [
+                'type' => 'Chicken',
+                'eggGradeID' => 1,
+                'description' => 'Fresh eggs from Cage 1',
+                'cageID' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'type' => 'Chicken',
+                'eggGradeID' => 2,
+                'description' => 'Fresh eggs from Cage 2',
+                'cageID' => 2,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ]);
     }
 }
