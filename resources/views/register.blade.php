@@ -40,12 +40,8 @@
                                 <fieldset>
                                     <legend class="h6 mb-3">Basic Information</legend>
                                     <div class="mb-3">
-                                        <label for="first_name" class="form-label">First Name</label>
-                                        <input type="text" class="form-control" id="first_name" name="first_name" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="last_name" class="form-label">Last Name</label>
-                                        <input type="text" class="form-control" id="last_name" name="last_name" required>
+                                        <label for="name" class="form-label">Name</label>
+                                        <input type="text" class="form-control" id="name" name="name" required>
                                     </div>
                                     <div class="mb-3">
                                         <label for="email" class="form-label">Email</label>
@@ -62,7 +58,7 @@
                             <div class="col-md-6">
                                 <fieldset>
                                     <legend class="h6 mb-3">Additional Information</legend>
-                                    <div class="mb-3">
+                                    <div class="mb-3"> 
                                         <label for="phone" class="form-label">Phone Number</label>
                                         <input type="tel" class="form-control" id="phone" name="phone" required>
                                     </div>

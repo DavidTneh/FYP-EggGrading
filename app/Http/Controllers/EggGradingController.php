@@ -7,6 +7,7 @@ use App\Models\Cage;
 use App\Models\EggGrade;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class EggGradingController extends Controller
 {
@@ -232,5 +233,102 @@ class EggGradingController extends Controller
 
         // Redirect after success
         return redirect()->route('/eggResults')->with('success', 'Egg group updated successfully.');
+    }
+
+    public function gradeEggs(Request $request)
+    {
+        // Validate the incoming request
+        $request->validate([
+            'frame1' => 'required|string',
+            'frame2' => 'required|string',
+        ]);
+
+        try {
+            // Get frames from the request
+            $frames = $request->only(['frame1', 'frame2']);
+
+            // Decode base64 images
+            $frame1 = $this->decodeImage($frames['frame1']);
+            $frame2 = $this->decodeImage($frames['frame2']);
+
+            // Process frames with your model
+            $grade1 = $this->classifyEgg($frame1);
+            $grade2 = $this->classifyEgg($frame2);
+
+            // Determine final grade
+            $finalGrade = $this->determineFinalGrade($grade1, $grade2);
+
+            // Optionally, encode processed frames to send back
+            $processedFrame1 = base64_encode($frame1); // If you want to return the processed frame
+            $processedFrame2 = base64_encode($frame2); // If you want to return the processed frame
+
+            return response()->json([
+                'finalGrade' => $finalGrade,
+                'processedFrame1' => $processedFrame1,
+                'processedFrame2' => $processedFrame2,
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['error' => 'Invalid input: ' . $e->getMessage()], 422);
+        } catch (\Exception $e) {
+            Log::error("Classification error: " . $e->getMessage());
+            return response()->json(['error' => 'An error occurred during grading: ' . $e->getMessage()], 500);
+        }
+    }
+
+    private function decodeImage($base64)
+    {
+        // Remove the data URL part
+        $base64 = preg_replace('#^data:image/\w+;base64,#i', '', $base64);
+        return base64_decode($base64);
+    }
+
+
+    private function classifyEgg($image)
+    {
+        // Decode and save the image
+        $imagePath = storage_path('app/temp_image.jpg');
+        $image = request()->input('frame1'); // Assuming you get base64 encoded data
+        if (preg_match('/^data:image\/(\w+);base64,/',
+            $image,
+            $type
+        )) {
+            $image = substr($image, strpos($image, ',') + 1);
+            $image = base64_decode($image);
+
+            // Log the length of the decoded image to see if it's valid
+            Log::info("Decoded image data length: " . strlen($image));
+
+            if (file_put_contents($imagePath, $image) === false) {
+                Log::error("Failed to save image to $imagePath");
+                return -1; // Return an error code
+            }
+        } else {
+            Log::error("Invalid image data.");
+            return -1; // Handle the error
+        }
+
+
+        // Prepare the command to run the Python script
+        $command = "python public/storage/GradingModel/classify_egg.py " . escapeshellarg($imagePath);
+
+        // Execute the command and get the output
+        $output = shell_exec($command . " 2>&1");
+
+        // Check for errors in output
+        if ($output === null || trim($output) === '') {
+            Log::error("No output received from Python script.");
+            return -1; // Return an error code or message
+        }
+
+        // Return the grade from the output
+        return intval(trim($output)); // Ensure it's returned as an integer
+    }
+
+
+
+
+    private function determineFinalGrade($grade1, $grade2)
+    {
+        return ($grade1 + $grade2) / 2; // Simple averaging; adjust as needed
     }
 }

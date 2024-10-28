@@ -32,7 +32,8 @@ Route::get('/home', [AuthController::class, 'showLoginForm']);
 
 Route::get('/admin', function () {
     return view('admin');
-});
+})->name('/admin');  // Add a name for the route
+
 
 Route::get('/profile', function () {
     return view('profile');
@@ -47,24 +48,27 @@ Route::prefix('admin')->name('admin.')->middleware(RedirectIfAuthenticated::clas
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 
-    // Forgot Password Routes
+    Route::get('/register', [AuthController::class, 'register'])->name('admin.register');
+
+    // Forgot Password Routes 
     Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('forgot_password');
     Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('send_reset_link');
 
     // Password Reset Routes
     Route::get('/reset-password/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
     Route::post('/reset-password/{token}', [AuthController::class, 'resetPassword'])->name('password.reset.post');
-    Route::get('/logout', [AuthController::class, 'logout'])->name('admin.logout');
+    // Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 
-Route::get('/register', function () {
-    return view('register');
-});
- 
+// Move logout outside of RedirectIfAuthenticated and add `auth` middleware for protection
+Route::post('/admin/logout', [AuthController::class, 'logout'])->name('admin.logout')->middleware('auth:web');
+
+
 Route::get('/eggGrading', function () {
     return view('eggGrading');
 });
 
+Route::post('/gradeEggs', [EggGradingController::class, 'gradeEggs'])->name('/gradeEggs');
 Route::get('/eggResults', [EggGradingController::class, 'index'])->name('/eggResults');
 Route::get('/eggs/create', [EggGradingController::class, 'create'])->name('egg_grading.create');
 Route::post('/eggs', [EggGradingController::class, 'store'])->name('egg_grading.store');

@@ -74,8 +74,7 @@
                         style="background-color: #007bff; border: none;">Login</button>
                 </form>
                 <div class="mt-3 text-center">
-                    {{-- href="{{ route('register') }}" --}}
-                    <p class="mb-0">Don't have an account? <a class="text-primary-custom">Register</a></p>
+                    <p class="mb-0">Don't have an account? <a href="{{route('admin.admin.register')}}" class="text-primary-custom">Register</a></p>
                 </div>
                 <div class="mt-2 text-center">
                     <a href="{{ route('admin.forgot_password') }}" class="text-primary-custom">Forgot your password?</a>

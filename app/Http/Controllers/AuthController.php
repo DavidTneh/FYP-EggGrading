@@ -104,23 +104,71 @@ class AuthController extends Controller
         }
     }
 
+    public function register(Request $request)
+    {
+        // Validate the request data
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255|unique:users',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+            'phoneNo' => 'required',
+            'dob' => 'required',
+            'address' => 'required',
+            'confirm_password' => 'confirm_password',
+            'terms' => 'checked'
+        ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            $firstError = $errors->first();
+            return back()->with('validation_error', $firstError);
+
+        }
+
+        $validatedData = $validator->validated();
+
+        // Directly create the user without using a repository
+        $user = User::create([
+            'name' => $validatedData['name'],
+            'email' => $validatedData['email'],
+            'phoneNo' => $validatedData['phoneNo'],
+            'dob' => $validatedData['dob'],
+            'password' => Hash::make($validatedData['password']),
+            'status' => 1,  // Set default status to active
+            'roleID' => 2,   // Set default role ID
+        ]);
+
+        // Generate a token for the user
+        $token = $user->createToken('API Token', ['*'], now()->addWeek())->plainTextToken;
+
+        $success['token'] = $token;
+        $success['name'] = $user->name;
+        $success['user_id'] = $user->userID;
+
+        // Redirect to the '/admin' route
+        return redirect()->route('admin')->with('success', 'Registration successful!');
+    }
+
+    
+
 
     public function logout(Request $request)
     {
-        $userId = Auth::guard('admin')->id();
+        $userId = Auth::guard('web')->id();
 
-        // Log the logout activity
-        if ($userId) {
-            // Log the logout activity
-            $this->logUserActivity($userId, 'logout', $request, 'success');
-        }
+        // Log the logout activity 
+        // if ($userId) {
+        //     $this->logUserActivity($userId, 'logout', $request, 'success');
+        // }
 
-        Auth::guard('admin')->logout();
+        Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('/admin/login');
+        // Redirect to the named route for login (admin.login)
+        return redirect()->route('admin.login');  // Use the named route 'admin.login'
     }
+
 
     public function showForgotPasswordForm()
     {
