@@ -1,27 +1,31 @@
 import sys
-import numpy as np
+import os
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
-import os
+import numpy as np
 
 # Load the model
-model_path = os.path.join(os.getcwd(), 'public', 'storage', 'GradingModel', 'egg_quality_model.h5')
-print("Current Working Directory:", os.getcwd())
-print("Model Path:", model_path)
+model_directory = 'storage/eggGradingModel'  # Update path as necessary
+model_path = os.path.join(model_directory, 'egg_quality_model.h5')
 
 try:
-    model = load_model(model_path)  # Use the absolute path
+    model = load_model(model_path)
+    print("Model loaded successfully.")
 except Exception as e:
     print(f"Error loading model: {e}")
     sys.exit(1)
 
 # Preprocess image function
 def preprocess_image(img_path):
-    img = image.load_img(img_path, target_size=(128, 128))
-    img_array = image.img_to_array(img)
-    img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
-    img_array /= 255.0  # Normalize to [0, 1]
-    return img_array
+    try:
+        img = image.load_img(img_path, target_size=(128, 128))
+        img_array = image.img_to_array(img)
+        img_array = np.expand_dims(img_array, axis=0)
+        img_array /= 255.0  # Normalize to [0, 1]
+        return img_array
+    except Exception as e:
+        print(f"Error preprocessing image: {e}")
+        sys.exit(1)
 
 # Check for input image argument
 if len(sys.argv) < 2:
@@ -31,9 +35,13 @@ if len(sys.argv) < 2:
 image_path = sys.argv[1]
 processed_image = preprocess_image(image_path)
 
-# Make prediction
-predictions = model.predict(processed_image)
-predicted_class = np.argmax(predictions, axis=1)[0]  # Get the index of the class with the highest probability
 
-# Print the predicted class
-print(predicted_class)
+# Make prediction
+try:
+    prediction = model.predict(processed_image)
+    print(f"Predicted probabilities: {prediction}")
+    print(f"Predicted class: {np.argmax(prediction)}")
+
+except Exception as e:
+    print(f"Error during prediction: {e}")
+    sys.exit(1)

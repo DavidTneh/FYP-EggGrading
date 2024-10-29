@@ -219,7 +219,7 @@
             </li>
 
             <li class="nav-item">
-              <a href="/collectionPlanManagement" class="nav-link">
+              <a href="collectionplan" class="nav-link">
                 <i class="fas fa-hand-holding nav-icon"></i>
                 <p>
                   Collection Plan

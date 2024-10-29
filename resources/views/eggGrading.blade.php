@@ -66,6 +66,14 @@
         </div>
     </div>
 
+    <div class="row mt-4">
+        <div class="col-md-12 text-center">
+            <h3>Uploaded Image</h3>
+            <img src="{{ asset('app/image.png') }}" alt="Uploaded Egg Image"
+                style="max-width: 100%; height: auto;">
+        </div>
+    </div>
+
     <script>
         let camera1Stream = null;
         let camera2Stream = null;
@@ -165,10 +173,14 @@
                 const camera1Frame = captureFrame(camera1);
                 const camera2Frame = captureFrame(camera2);
 
+                console.log({
+                    camera1Frame,
+                    camera2Frame
+                });
                 // Send frames to backend for grading
                 const grades = await sendFramesToBackend(camera1Frame, camera2Frame);
                 document.getElementById('resultDisplay').innerText = "Final Grade: " + grades.finalGrade;
-            }, captureInterval);
+            }, captureInterval); 
         }
 
         // Capture a frame from the video element
@@ -183,7 +195,7 @@
 
         async function sendFramesToBackend(frame1, frame2) {
             try {
-                const response = await fetch('/gradeEggs', {
+                const response = await fetch('/api/gradeEggs', { // Updated endpoint
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -193,31 +205,21 @@
                         frame1,
                         frame2
                     }),
+
                 });
 
                 if (!response.ok) {
-                    const errorMessage = await response.json();
+                    const errorMessage = await response.json(); // Get error response
                     throw new Error(`HTTP error! status: ${response.status}, message: ${errorMessage.error}`);
                 }
 
-                const data = await response.json();
-
-                // Display final grade
-                document.getElementById('resultDisplay').innerText = "Final Grade: " + data.finalGrade;
-
-                // Optionally display processed frames
-                if (data.processedFrame1 && data.processedFrame2) {
-                    document.getElementById('camera1-stream').src = "data:image/jpeg;base64," + data.processedFrame1;
-                    document.getElementById('camera2-stream').src = "data:image/jpeg;base64," + data.processedFrame2;
-                }
-
-                return data; // Return the full data response
+                return await response.json(); // Return JSON response with grades
             } catch (error) {
                 console.error("Error sending frames to backend:", error);
-                alert(`An error occurred: ${error.message}`);
+                alert(`An error occurred: ${error.message}`); // Notify user
                 return {
                     finalGrade: "Error"
-                };
+                }; // Handle error
             }
         }
 

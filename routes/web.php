@@ -6,6 +6,8 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\EggGradingController;
 use App\Http\Middleware\RedirectIfAuthenticated;
+use App\Http\Controllers\CollectionPlanController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -76,6 +78,14 @@ Route::get('/egg-grading/batch-edit', [EggGradingController::class, 'batchEdit']
 Route::put('/egg-grading/batch-update', [EggGradingController::class, 'batchUpdate'])->name('egg_grading.batchUpdate');
 Route::delete('/egg-grading/batch-delete', [EggGradingController::class, 'batchDelete'])->name('egg_grading.batchDelete');
 
+Route::get('/collectionplan', [CollectionPlanController::class, 'index'])->name('collectionplan.index');
+Route::get('/collectionplan/create', [CollectionPlanController::class, 'create'])->name('collectionplan.create');
+Route::post('/collectionplan/store', [CollectionPlanController::class, 'store'])->name('collectionplan.store');
+// Route::get('/collectionplan/{collectionPlan}', [CollectionPlanController::class, 'show'])->name('collectionplan.show');
+Route::get('/collectionplan/{collectionPlanID}/edit', [CollectionPlanController::class, 'edit'])->name('collectionplan.edit');
+Route::put('/collectionplan/{collectionPlanID}', [CollectionPlanController::class, 'update'])->name('collectionplan.update');
+Route::delete('/collectionplan/{collectionPlanID}', [CollectionPlanController::class, 'destroy'])->name('collectionplan.destroy');
+
 Route::get('/addResults', function () {
     return view('addResults');
 });
@@ -142,21 +152,7 @@ Route::get('/deleteVaccinationPlan', function () {
 });
 
 
-Route::get('/collectionPlanManagement', function () {
-    return view('collectionPlanManagement');
-});
 
-Route::get('/addCollectionPlan', function () {
-    return view('addCollectionPlan');
-});
-
-Route::get('/updateCollectionPlan', function () {
-    return view('updateCollectionPlan');
-});
-
-Route::get('/deleteCollectionPlan', function () {
-    return view('deleteCollectionPlan');
-});
 
 Route::get('/feedingPlanManagement', function () {
     return view('feedingPlanManagement');

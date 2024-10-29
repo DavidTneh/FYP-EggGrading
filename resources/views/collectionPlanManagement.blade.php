@@ -3,7 +3,7 @@
 @section('title', 'Collection Plans Management')
 
 @section('content_header')
-    <h1>Collection Plans Management</h1>
+<h1>Collection Plans Management</h1>
 @stop
 
 @section('content')
@@ -11,8 +11,8 @@
     <div class="row">
         <div class="col-md-12 mt-5">
             <h1 class="mt-5">Collection Plans</h1>
-            {{-- href="{{ route('collection-plans.create') }}" --}}
-            <a  class="btn btn-success mb-3 float-right">Add New Collection Plan</a>
+            <a href="{{ route('collectionplan.create') }}" class="btn btn-success mb-3 float-right">Add New Collection
+                Plan</a>
 
             <!-- Collection Plans List Table -->
             <table class="table table-striped">
@@ -26,75 +26,31 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @php
-                        $collectionPlans = [
-                            ['id' => 1, 'time' => '09:00 AM', 'frequency' => 'Daily', 'repeat' => 'Yes'],
-                            ['id' => 2, 'time' => '02:00 PM', 'frequency' => 'Weekly', 'repeat' => 'No'],
-                            // Add more plans for pagination demonstration
-                            ['id' => 3, 'time' => '06:00 AM', 'frequency' => 'Monthly', 'repeat' => 'Yes'],
-                            ['id' => 4, 'time' => '08:00 PM', 'frequency' => 'Daily', 'repeat' => 'No'],
-                        ];
-                        $currentPage = 1;
-                        $perPage = 2;
-                        $total = count($collectionPlans);
-                        $pagination = array_slice($collectionPlans, ($currentPage - 1) * $perPage, $perPage);
-                    @endphp
-
-                    @foreach($pagination as $plan)
-                        <tr>
-                            <td>{{ $plan['id'] }}</td>
-                            <td>{{ $plan['time'] }}</td>
-                            <td>{{ $plan['frequency'] }}</td>
-                            <td>{{ $plan['repeat'] }}</td>
-                            <td>
-                                {{-- href="{{ route('collection-plans.edit', $plan['id']) }}" --}}
-                                <a  class="btn btn-primary btn-sm">Edit</a>
-                                {{-- action="{{ route('collection-plans.destroy', $plan['id']) }}" --}}
-                                <form  method="POST" style="display:inline;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this plan?')">Delete</button>
-                                </form>
-                            </td>
-                        </tr>
+                    @foreach($collectionPlans as $plan)
+                    <tr>
+                        <td>{{ $plan->collectionplanID }}</td>
+                        <td>{{ \Carbon\Carbon::createFromFormat('H:i:s', $plan->time)->format('h:i A') }}</td>
+                        <td>{{ $plan->frequency }}</td>
+                        <td>{{ $plan->repeat ? 'Yes' : 'No' }}</td>
+                        <td>
+                            <a href="{{ route('collectionplan.edit', $plan->collectionplanID) }}"
+                                class="btn btn-primary btn-sm">Edit</a>
+                            <form action="{{ route('collectionplan.destroy', $plan->collectionplanID) }}" method="POST"
+                                style="display:inline;">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Are you sure you want to delete this plan?')">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
                     @endforeach
                 </tbody>
             </table>
 
             <!-- Pagination Controls -->
             <div class="mt-3">
-                @php
-                    $totalPages = ceil($total / $perPage);
-                @endphp
-
-                <nav aria-label="Page navigation">
-                    <ul class="pagination">
-                        @if($currentPage > 1)
-                            <li class="page-item">
-                                {{-- href="{{ route('collection-plans.index', ['page' => $currentPage - 1]) }}" --}}
-                                <a class="page-link"  aria-label="Previous">
-                                    <span aria-hidden="true">&laquo;</span>
-                                </a>
-                            </li>
-                        @endif
-
-                        @for($i = 1; $i <= $totalPages; $i++)
-                            <li class="page-item {{ $i == $currentPage ? 'active' : '' }}">
-                                {{-- href="{{ route('collection-plans.index', ['page' => $i]) }}" --}}
-                                <a class="page-link" >{{ $i }}</a>
-                            </li>
-                        @endfor
-
-                        @if($currentPage < $totalPages)
-                            <li class="page-item">
-                                {{-- href="{{ route('collection-plans.index', ['page' => $currentPage + 1]) }}" --}}
-                                <a class="page-link"  aria-label="Next">
-                                    <span aria-hidden="true">&raquo;</span>
-                                </a>
-                            </li>
-                        @endif
-                    </ul>
-                </nav>
+                {{ $collectionPlans->links() }}
             </div>
         </div>
     </div>
