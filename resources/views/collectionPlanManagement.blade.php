@@ -34,14 +34,23 @@
                         <td>{{ $plan->repeat ? 'Yes' : 'No' }}</td>
                         <td>
                             <a href="{{ route('collectionplan.edit', $plan->collectionplanID) }}"
-                                class="btn btn-primary btn-sm">Edit</a>
-                            <form action="{{ route('collectionplan.destroy', $plan->collectionplanID) }}" method="POST"
+                                                            class="btn btn-primary btn-sm">Edit</a>
+                            
+                            {{-- <form action="{{ route('collectionplan.edit', $plan->collectionplanID) }}" method="POST">
+                            
+                                <button type="submit" class="btn btn-primary btn-sm">Edit</button>
+                            
+                            </form> --}}
+
+                            {{-- <form action="{{ route('collectionplan.delete') }}" method="GET"
                                 style="display:inline;">
                                 @csrf
-                                @method('DELETE')
+                                <input type="hidden" value="{{ $plan->collectionplanID }}">
                                 <button type="submit" class="btn btn-danger btn-sm"
                                     onclick="return confirm('Are you sure you want to delete this plan?')">Delete</button>
-                            </form>
+                            </form> --}}
+
+                            <a href="{{ route('collectionplan.delete', $plan->collectionplanID) }}" class="btn btn-danger btn-sm">Delete</a>
                         </td>
                     </tr>
                     @endforeach

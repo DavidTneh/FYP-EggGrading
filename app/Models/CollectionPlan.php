@@ -8,4 +8,11 @@ class CollectionPlan extends Model
 {
     protected $table = 'collectionPlan';
     protected $primaryKey = 'collectionPlanID';
+
+
+    protected $fillable = [
+        'time',
+        'frequency',
+        'repeat',
+    ];
 }

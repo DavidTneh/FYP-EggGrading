@@ -219,11 +219,10 @@
             </li>
 
             <li class="nav-item">
-              <a href="collectionplan" class="nav-link">
+              <a href="{{ route('collectionplan.index') }}" class="nav-link">
                 <i class="fas fa-hand-holding nav-icon"></i>
                 <p>
                   Collection Plan
-
                 </p>
               </a>
 
@@ -299,7 +298,8 @@
               <form id="logout-form" action="{{ route('admin.logout') }}" method="POST" style="display: none;">
                 @csrf
               </form>
-              <a href="#" class="nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+              <a href="#" class="nav-link"
+                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                 <i class="fas fa-sign-out-alt nav-icon"></i>
                 <p>Logout</p>
               </a>

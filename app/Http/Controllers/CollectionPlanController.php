@@ -18,7 +18,7 @@ class CollectionPlanController extends Controller
     public function create()
     {
         return view('addCollectionPlan');
-    }
+    } 
 
     // Store a newly created collection plan in the database
     public function store(Request $request)
@@ -31,7 +31,7 @@ class CollectionPlanController extends Controller
 
         CollectionPlan::create($validated);
 
-        return redirect()->route('/collectionplan')->with('success', 'Collection plan created successfully.');
+        return redirect()->route('collectionplan.index')->with('success', 'Collection plan created successfully.');
     }
 
     // Display the specified collection plan
@@ -41,30 +41,58 @@ class CollectionPlanController extends Controller
     }
 
     // Show the form for editing the specified collection plan
-    public function edit(CollectionPlan $collectionPlan)
+    public function edit($collectionplanID)
     {
+
+        $collectionPlan = CollectionPlan::findOrFail($collectionplanID);
+
         return view('updateCollectionPlan', compact('collectionPlan'));
     }
 
     // Update the specified collection plan in the database
-    public function update(Request $request, CollectionPlan $collectionPlan)
+    public function update(Request $request)
     {
-        $validated = $request->validate([
-            'time' => 'required|date_format:H:i:s',
+        $request->validate([
+            // 'time' => 'required|date_format:H:i:s',
             'frequency' => 'required|string|max:255',
             'repeat' => 'required|boolean'
         ]);
 
-        $collectionPlan->update($validated);
+        $id = $request->input('collectionplanID');
+
+        // Process the time input
+        $time = $request->input('time');
+        if (strlen($time) === 5) {
+            $time .= ':00'; // Add seconds if not present
+        }
+
+        // Update the collection plan using the update method
+        CollectionPlan::where('collectionplanID', $id)->update([
+            'time' => $time,
+            'frequency' => $request->input('frequency'),
+            'repeat' => $request->input('repeat')
+        ]);
 
         return redirect()->route('collectionplan.index')->with('success', 'Collection plan updated successfully.');
     }
 
-    // Remove the specified collection plan from the database
-    public function destroy(CollectionPlan $collectionPlan)
+    public function showDelete($collectionplanID)
     {
-        $collectionPlan->delete();
+
+        $plan = CollectionPlan::findOrFail($collectionplanID);
+        return view('/deleteCollectionPlan', compact('plan'));
+    }
+
+
+    public function destroy(Request $request)
+    {
+        $id = $request->input('collectionplanID');
+
+        // Direct delete using the where clause
+        CollectionPlan::where('collectionplanID', $id)->delete();
 
         return redirect()->route('collectionplan.index')->with('success', 'Collection plan deleted successfully.');
     }
+
+
 }

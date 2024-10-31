@@ -13,7 +13,7 @@
             <h1 class="mt-5">Create Collection Plan <i class="fas fa-plus"></i></h1>
 
             <form method="POST" action="{{ route('collectionplan.store') }}" onsubmit="formatTimeInput()">
-                @csrf
+                @csrf 
                 <div class="form-group">
                     <label for="time">Time (24-hour format)</label>
                     <input type="time" name="time" class="form-control" id="time" required>

@@ -83,8 +83,9 @@ Route::get('/collectionplan/create', [CollectionPlanController::class, 'create']
 Route::post('/collectionplan/store', [CollectionPlanController::class, 'store'])->name('collectionplan.store');
 // Route::get('/collectionplan/{collectionPlan}', [CollectionPlanController::class, 'show'])->name('collectionplan.show');
 Route::get('/collectionplan/{collectionPlanID}/edit', [CollectionPlanController::class, 'edit'])->name('collectionplan.edit');
-Route::put('/collectionplan/{collectionPlanID}', [CollectionPlanController::class, 'update'])->name('collectionplan.update');
-Route::delete('/collectionplan/{collectionPlanID}', [CollectionPlanController::class, 'destroy'])->name('collectionplan.destroy');
+Route::put('/collectionplan/update', [CollectionPlanController::class, 'update'])->name('collectionplan.update');
+Route::get('/collectionplan/{collectionPlanID}/delete', [CollectionPlanController::class, 'showDelete'])->name('collectionplan.delete');
+Route::delete('/collectionplan/destroy', [CollectionPlanController::class, 'destroy'])->name('collectionplan.destroy');
 
 Route::get('/addResults', function () {
     return view('addResults');
