@@ -3,7 +3,7 @@
 @section('title', 'Delete Culling Plan')
 
 @section('content_header')
-    <h1>Delete Culling Plan</h1>
+<h1>Delete Culling Plan</h1>
 @stop
 
 @section('content')
@@ -11,47 +11,40 @@
     <div class="row">
         <div class="col-md-12 mt-5">
             <h1 class="mt-5">Delete Culling Plan <i class="fas fa-trash-alt"></i></h1>
-            
-            <!-- Hard-coded culling plan details -->
-            @php
-                $plan = [
-                    'id' => 1,
-                    'eliminateAgeThreshold' => '24 weeks',
-                    'reasons' => 'Low productivity',
-                    'healthStatus' => 'Poor',
-                    'notes' => 'Monitor regularly',
-                ];
-            @endphp
 
             <div class="alert alert-danger" role="alert">
                 <strong>Are you sure you want to delete this culling plan?</strong>
             </div>
-            
+
             <dl class="row">
                 <dt class="col-sm-3">Plan ID:</dt>
-                <dd class="col-sm-9">{{ $plan['id'] }}</dd>
+                <dd class="col-sm-9">{{ $plan->cullingplanID }}</dd>
 
                 <dt class="col-sm-3">Eliminate Age Threshold:</dt>
-                <dd class="col-sm-9">{{ $plan['eliminateAgeThreshold'] }}</dd>
+                <dd class="col-sm-9">{{ $plan->eliminateAgeThreshold }} months</dd>
 
                 <dt class="col-sm-3">Reasons:</dt>
-                <dd class="col-sm-9">{{ $plan['reasons'] }}</dd>
+                <dd class="col-sm-9">{{ $plan->reasons }}</dd>
 
                 <dt class="col-sm-3">Health Status:</dt>
-                <dd class="col-sm-9">{{ $plan['healthStatus'] }}</dd>
+                <dd class="col-sm-9">{{ $plan->healthStatus }}</dd>
 
                 <dt class="col-sm-3">Notes:</dt>
-                <dd class="col-sm-9">{{ $plan['notes'] }}</dd>
+                <dd class="col-sm-9">{{ $plan->notes }}</dd>
             </dl>
-            {{-- action="{{ route('culling-plans.destroy', $plan['id']) }}" --}}
-            <form  method="POST">
+
+            <form action="{{ route('cullingplan.destroy', $plan->cullingplanID) }}" method="POST">
                 @csrf
                 @method('DELETE')
+
+                <!-- Hidden field to pass the culling plan ID -->
+                <input type="hidden" name="cullingplanID" value="{{ $plan->cullingplanID }}">
+
                 <div class="float-right">
-                <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this plan?')">Delete</button>
-                {{-- href="{{ route('culling-plans.index') }}" --}}
-                <a  class="btn btn-secondary">Cancel</a>
-            </div>
+                    <button type="submit" class="btn btn-danger"
+                        onclick="return confirm('Are you sure you want to delete this plan?')">Delete</button>
+                    <a href="{{ route('cullingplan.index') }}" class="btn btn-secondary">Cancel</a>
+                </div>
             </form>
         </div>
     </div>

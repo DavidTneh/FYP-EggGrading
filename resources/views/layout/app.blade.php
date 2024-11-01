@@ -228,7 +228,7 @@
 
             </li>
             <li class="nav-item">
-              <a href="/feedingPlanManagement" class="nav-link">
+              <a href="{{ route('feedingplan.index') }}" class="nav-link">
                 <i class="fas fa-cookie-bite nav-icon"></i>
                 <p>
                   Feeding Plan
@@ -238,7 +238,7 @@
             </li>
 
             <li class="nav-item">
-              <a href="/cullingPlanManagement" class="nav-link">
+              <a href="{{ route('cullingplan.index') }}" class="nav-link">
                 <i class="far fa-window-close nav-icon"></i>
                 <p>
                   Culling Plan

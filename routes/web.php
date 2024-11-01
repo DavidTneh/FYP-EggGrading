@@ -7,7 +7,8 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\EggGradingController;
 use App\Http\Middleware\RedirectIfAuthenticated;
 use App\Http\Controllers\CollectionPlanController;
-
+use App\Http\Controllers\FeedingPlanController;
+use App\Http\Controllers\CullingPlanController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -87,17 +88,35 @@ Route::put('/collectionplan/update', [CollectionPlanController::class, 'update']
 Route::get('/collectionplan/{collectionPlanID}/delete', [CollectionPlanController::class, 'showDelete'])->name('collectionplan.delete');
 Route::delete('/collectionplan/destroy', [CollectionPlanController::class, 'destroy'])->name('collectionplan.destroy');
 
-Route::get('/addResults', function () {
-    return view('addResults');
-});
+Route::get('/feedingplan', [FeedingPlanController::class, 'index'])->name('feedingplan.index');
+Route::get('/feedingplan/create', [FeedingPlanController::class, 'create'])->name('feedingplan.create');
+Route::post('/feedingplan/store', [FeedingPlanController::class, 'store'])->name('feedingplan.store');
+// Route::get('/feedingplan/{feedingPlan}', [FeedingPlanController::class, 'show'])->name('feedingplan.show');
+Route::get('/feedingplan/{feedingPlanID}/edit', [FeedingPlanController::class, 'edit'])->name('feedingplan.edit');
+Route::put('/feedingplan/update', [FeedingPlanController::class, 'update'])->name('feedingplan.update');
+Route::get('/feedingplan/{feedingPlanID}/delete', [FeedingPlanController::class, 'showDelete'])->name('feedingplan.delete');
+Route::delete('/feedingplan/destroy', [FeedingPlanController::class, 'destroy'])->name('feedingplan.destroy');
 
-Route::get('/updateResults', function () {
-    return view('updateResults');
-});
+Route::get('/cullingplan', [CullingPlanController::class, 'index'])->name('cullingplan.index');
+Route::get('/cullingplan/create', [CullingPlanController::class, 'create'])->name('cullingplan.create');
+Route::post('/cullingplan/store', [CullingPlanController::class, 'store'])->name('cullingplan.store');
+// Route::get('/cullingplan/{cullingPlan}', [CullingPlanController::class, 'show'])->name('cullingplan.show');
+Route::get('/cullingplan/{cullingPlanID}/edit', [CullingPlanController::class, 'edit'])->name('cullingplan.edit');
+Route::put('/cullingplan/update', [CullingPlanController::class, 'update'])->name('cullingplan.update');
+Route::get('/cullingplan/{cullingPlanID}/delete', [CullingPlanController::class, 'showDelete'])->name('cullingplan.delete');
+Route::delete('/cullingplan/destroy', [CullingPlanController::class, 'destroy'])->name('cullingplan.destroy');
 
-Route::get('/deleteResults', function () {
-    return view('deleteResults');
-});
+// Route::get('/addResults', function () {
+//     return view('addResults');
+// });
+
+// Route::get('/updateResults', function () {
+//     return view('updateResults');
+// });
+
+// Route::get('/deleteResults', function () {
+//     return view('deleteResults');
+// });
 
 Route::get('/cageManagement', function () {
     return view('cageManagement');
@@ -155,37 +174,37 @@ Route::get('/deleteVaccinationPlan', function () {
 
 
 
-Route::get('/feedingPlanManagement', function () {
-    return view('feedingPlanManagement');
-});
+// Route::get('/feedingPlanManagement', function () {
+//     return view('feedingPlanManagement');
+// });
 
-Route::get('/addFeedingPlan', function () {
-    return view('addFeedingPlan');
-});
+// Route::get('/addFeedingPlan', function () {
+//     return view('addFeedingPlan');
+// });
 
-Route::get('/updateFeedingPlan', function () {
-    return view('updateFeedingPlan');
-});
+// Route::get('/updateFeedingPlan', function () {
+//     return view('updateFeedingPlan');
+// });
 
-Route::get('/deleteFeedingPlan', function () {
-    return view('deleteFeedingPlan');
-});
+// Route::get('/deleteFeedingPlan', function () {
+//     return view('deleteFeedingPlan');
+// });
 
-Route::get('/cullingPlanManagement', function () {
-    return view('cullingPlanManagement');
-});
+// Route::get('/cullingPlanManagement', function () {
+//     return view('cullingPlanManagement');
+// });
 
-Route::get('/addCullingPlan', function () {
-    return view('addCullingPlan');
-});
+// Route::get('/addCullingPlan', function () {
+//     return view('addCullingPlan');
+// });
 
-Route::get('/updateCullingPlan', function () {
-    return view('updateCullingPlan');
-});
+// Route::get('/updateCullingPlan', function () {
+//     return view('updateCullingPlan');
+// });
 
-Route::get('/deleteCullingPlan', function () {
-    return view('deleteCullingPlan');
-});
+// Route::get('/deleteCullingPlan', function () {
+//     return view('deleteCullingPlan');
+// });
 
 Route::get('/calender', function () {
     return view('calender');

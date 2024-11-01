@@ -8,4 +8,11 @@ class CullingPlan extends Model
 {
     protected $table = 'cullingPlan';
     protected $primaryKey = 'cullingPlanID';
+
+    protected $fillable = [
+        'eliminateAgeThreshold',
+        'reasons',
+        'healthStatus',
+        'notes',
+    ];
 }
