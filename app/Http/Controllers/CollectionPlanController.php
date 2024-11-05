@@ -2,8 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CageSchedule;
 use Illuminate\Http\Request;
 use App\Models\CollectionPlan;
+use App\Models\TaskScheduling;
+use App\Models\AssignedEmployee;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CollectionPlanController extends Controller
 {
@@ -86,12 +91,35 @@ class CollectionPlanController extends Controller
 
     public function destroy(Request $request)
     {
-        $id = $request->input('collectionplanID');
+        try {
+            $id = $request->input('collectionplanID');
+            Log::info("Attempting to delete CollectionPlan with ID: $id");
 
-        // Direct delete using the where clause
-        CollectionPlan::where('collectionplanID', $id)->delete();
+            // Find the collection plan by ID
+            $collectionPlan = CollectionPlan::findOrFail($id);
+            $collectionPlan->delete();
+            // Get all tasks associated with this collection plan
+            $tasks = TaskScheduling::where('collectionplanID', $id)->get();
 
-        return redirect()->route('collectionplan.index')->with('success', 'Collection plan deleted successfully.');
+            foreach ($tasks as $task) {
+                Log::info("Deleting records associated with Task ID: " . $task->scheduleID);
+                AssignedEmployee::where('scheduleID', $task->scheduleID)->delete();
+                CageSchedule::where('scheduleID', $task->scheduleID)->delete();
+            }
+
+            // Delete all associated tasks in taskscheduling
+            TaskScheduling::where('collectionplanID', $id)->delete();
+            Log::info("Associated tasks deleted.");
+
+            CollectionPlan::where('collectionplanID', $id)->delete();
+
+            Log::info("CollectionPlan with ID $id deleted successfully.");
+
+            return redirect()->route('collectionplan.index')->with('success', 'Collection plan deleted successfully.');
+        } catch (\Exception $e) {
+            Log::error("Failed to delete Collection Plan: " . $e->getMessage());
+            return response()->json(['error' => 'Failed to delete Collection Plan: ' . $e->getMessage()], 500);
+        }
     }
 
 

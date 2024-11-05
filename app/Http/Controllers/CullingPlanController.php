@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\CullingPlan;
+use App\Models\CageSchedule;
+use Illuminate\Http\Request;
+use App\Models\TaskScheduling;
+use App\Models\AssignedEmployee;
+use Illuminate\Support\Facades\Log;
 
 class CullingPlanController extends Controller
 {
@@ -81,9 +85,34 @@ class CullingPlanController extends Controller
     // Delete the specified culling plan from the database
     public function destroy(Request $request)
     {
-        $id = $request->input('cullingplanID');
-        CullingPlan::where('cullingplanID', $id)->delete();
+        try {
+            $id = $request->input('cullingplanID');
+            Log::info("Attempting to delete CullingPlan with ID: $id");
 
-        return redirect()->route('cullingplan.index')->with('success', 'Culling plan deleted successfully.');
+            // Find the culling plan by ID
+            $cullingPlan = CullingPlan::findOrFail($id);
+            $cullingPlan->delete();
+
+            // Get all tasks associated with this culling plan
+            $tasks = TaskScheduling::where('cullingplanID', $id)->get();
+
+            foreach ($tasks as $task) {
+                Log::info("Deleting records associated with Task ID: " . $task->scheduleID);
+                AssignedEmployee::where('scheduleID', $task->scheduleID)->delete();
+                CageSchedule::where('scheduleID', $task->scheduleID)->delete();
+            }
+
+            // Delete all associated tasks in taskscheduling
+            TaskScheduling::where('cullingplanID', $id)->delete();
+            Log::info("Associated tasks deleted.");
+
+            CullingPlan::where('cullingplanID', $id)->delete();
+            Log::info("CullingPlan with ID $id deleted successfully.");
+
+            return redirect()->route('cullingplan.index')->with('success', 'Culling plan deleted successfully.');
+        } catch (\Exception $e) {
+            Log::error("Failed to delete Culling Plan: " . $e->getMessage());
+            return response()->json(['error' => 'Failed to delete Culling Plan: ' . $e->getMessage()], 500);
+        }
     }
 }

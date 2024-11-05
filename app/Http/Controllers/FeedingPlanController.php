@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\FeedingPlan;
+use App\Models\CageSchedule;
+use Illuminate\Http\Request;
+use App\Models\TaskScheduling;
+use App\Models\AssignedEmployee;
+use Illuminate\Support\Facades\Log;
 
 
 class FeedingPlanController extends Controller
@@ -88,12 +92,35 @@ class FeedingPlanController extends Controller
 
     public function destroy(Request $request)
     {
-        $id = $request->input('feedingplanID');
+        try {
+            $id = $request->input('feedingplanID');
+            Log::info("Attempting to delete FeedingPlan with ID: $id");
 
-        // Direct delete using the where clause
-        FeedingPlan::where('feedingplanID', $id)->delete();
+            // Find the feeding plan by ID
+            $feedingPlan = FeedingPlan::findOrFail($id);
+            $feedingPlan->delete();
 
-        return redirect()->route('feedingplan.index')->with('success', 'Feeding plan deleted successfully.');
+            // Get all tasks associated with this feeding plan
+            $tasks = TaskScheduling::where('feedingplanID', $id)->get();
+
+            foreach ($tasks as $task) {
+                Log::info("Deleting records associated with Task ID: " . $task->scheduleID);
+                AssignedEmployee::where('scheduleID', $task->scheduleID)->delete();
+                CageSchedule::where('scheduleID', $task->scheduleID)->delete();
+            }
+
+            // Delete all associated tasks in taskscheduling
+            TaskScheduling::where('feedingplanID', $id)->delete();
+            Log::info("Associated tasks deleted.");
+
+            FeedingPlan::where('feedingplanID', $id)->delete();
+            Log::info("FeedingPlan with ID $id deleted successfully.");
+
+            return redirect()->route('feedingplan.index')->with('success', 'Feeding plan deleted successfully.');
+        } catch (\Exception $e) {
+            Log::error("Failed to delete Feeding Plan: " . $e->getMessage());
+            return response()->json(['error' => 'Failed to delete Feeding Plan: ' . $e->getMessage()], 500);
+        }
     }
 
 }
