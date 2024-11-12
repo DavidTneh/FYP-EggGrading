@@ -83,10 +83,24 @@ class CollectionPlanController extends Controller
 
     public function showDelete($collectionplanID)
     {
-
         $plan = CollectionPlan::findOrFail($collectionplanID);
-        return view('/deleteCollectionPlan', compact('plan'));
+
+        // Fetch all related tasks, assigned employees, and cage schedules
+        $tasks = TaskScheduling::where('collectionplanID', $collectionplanID)->get();
+
+        // Fetch all assigned employees and cage schedules for each related task
+        $relatedData = [];
+        foreach ($tasks as $task) {
+            $relatedData[] = [
+                'task' => $task,
+                'assignedEmployees' => AssignedEmployee::where('scheduleID', $task->scheduleID)->get(),
+                'cageSchedules' => CageSchedule::where('scheduleID', $task->scheduleID)->get(),
+            ];
+        }
+
+        return view('deleteCollectionPlan', compact('plan', 'tasks', 'relatedData'));
     }
+
 
 
     public function destroy(Request $request)

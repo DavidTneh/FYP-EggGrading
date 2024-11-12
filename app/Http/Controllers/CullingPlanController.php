@@ -79,7 +79,20 @@ class CullingPlanController extends Controller
     public function showDelete($cullingplanID)
     {
         $plan = CullingPlan::findOrFail($cullingplanID);
-        return view('deleteCullingPlan', compact('plan'));
+
+        // Fetch all related tasks, assigned employees, and cage schedules
+        $tasks = TaskScheduling::where('cullingplanID', $cullingplanID)->get();
+
+        $relatedData = [];
+        foreach ($tasks as $task) {
+            $relatedData[] = [
+                'task' => $task,
+                'assignedEmployees' => AssignedEmployee::where('scheduleID', $task->scheduleID)->get(),
+                'cageSchedules' => CageSchedule::where('scheduleID', $task->scheduleID)->get(),
+            ];
+        }
+
+        return view('deleteCullingPlan', compact('plan', 'tasks', 'relatedData'));
     }
 
     // Delete the specified culling plan from the database

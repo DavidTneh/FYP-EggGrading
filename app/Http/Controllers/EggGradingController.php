@@ -33,9 +33,6 @@ class EggGradingController extends Controller
     }
 
 
-
-
-
     // Show the form for grading a new egg
     public function create()
     {
@@ -159,7 +156,6 @@ class EggGradingController extends Controller
         return view('/updateResults', compact('egg', 'grades', 'cages', 'quantity'));
     }
 
-
     public function batchUpdate(Request $request)
     {
         // Start a transaction to ensure data consistency
@@ -180,8 +176,6 @@ class EggGradingController extends Controller
 
             // dd($new_grade, $new_type, $new_description, $new_cage, $form_quantity);
             // Fetch the existing records based on the original criteria using whereDate for created_at
-
-
             $eggs = Egg::where('created_at', $receivedDate)
                 ->where('type', $type)
                 ->where('description', $description)
@@ -213,9 +207,10 @@ class EggGradingController extends Controller
                         'description' => $new_description,
                         'eggGradeID' => $new_grade,
                         'cageID' => $new_cage,
-                        'created_at' => $receivedDate,  // Ensure the same received date is used
+                        'created_at' => $receivedDate,  //Ensure the same received date is used
                     ]);
                 }
+
             } elseif ($form_quantity < $current_quantity) {
                 // Remove the extra eggs if the form quantity is less than the current quantity
                 $remove_quantity = $current_quantity - $form_quantity;
@@ -277,7 +272,6 @@ class EggGradingController extends Controller
         return base64_decode($base64);
     }
 
-
     private function classifyEgg($image)
     {
         // Ensure the directory exists
@@ -325,7 +319,6 @@ class EggGradingController extends Controller
         $grade = end($matches[0]) ?? -1;  // Get the last integer found in output
 
         return intval($grade);
-
     }
 
     private function determineFinalGrade($grade1, $grade2)
@@ -361,4 +354,4 @@ class EggGradingController extends Controller
         return $eggGrade; // Return the readable egg grade
     }
 
-}
+} 

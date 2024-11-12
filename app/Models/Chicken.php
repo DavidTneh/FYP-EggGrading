@@ -8,6 +8,7 @@ class Chicken extends Model
 {
     protected $table = 'chicken';
     protected $primaryKey = 'chickenID';
+    protected $fillable = ['breedID', 'dob', 'cageID'];
 
     public function breed()
     {

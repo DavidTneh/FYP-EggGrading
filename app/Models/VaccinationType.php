@@ -7,11 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class VaccinationType extends Model
 {
-    protected $table = 'vaccinationType';
-    protected $primaryKey = 'vaccinationTypeID';
+    protected $table = 'vaccinationtype';
+    protected $primaryKey = 'vaccinationtypeID';
 
     public function vaccinationPlans()
     {
-        return $this->hasMany(VaccinationPlan::class, 'vaccinationTypeID');
+        return $this->hasMany(VaccinationPlan::class, 'vaccinationtypeID');
     }
 }

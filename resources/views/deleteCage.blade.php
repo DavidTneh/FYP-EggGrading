@@ -3,53 +3,57 @@
 @section('title', 'Confirm Deletion')
 
 @section('content_header')
-    <h1>Confirm Deletion</h1>
+<h1>Confirm Deletion</h1>
 @stop
 
 @section('content')
 <div class="container" style="width: 80%; margin-top: 20px;">
     <div class="row">
         <div class="col-md-12 mt-5">
-            {{-- <i class="fas fa-10x fa-exclamation-triangle"></i> --}}
             <h1 class="mt-5">Confirm Deletion</h1>
-            
+
             <div class="alert alert-danger">
-                <strong>Warning!</strong> You are about to delete a cage.
+                <strong>Warning!</strong> You are about to delete the cage.
             </div>
-            
+
             <table class="table">
                 <tbody>
-                    <!-- Hard-coded values -->
                     <tr>
                         <th>ID</th>
-                        <td>1</td>
+                        <td>{{ $cage->cageID }}</td>
+                    </tr>
+                    <tr>
+                        <th>Name</th>
+                        <td>{{ $cage->name }}</td>
                     </tr>
                     <tr>
                         <th>Size</th>
-                        <td>Large</td>
+                        <td>{{ $cage->size }}</td>
                     </tr>
                     <tr>
                         <th>Capacity</th>
-                        <td>50</td>
+                        <td>{{ $cage->capacity }}</td>
                     </tr>
                     <tr>
                         <th>Type</th>
-                        <td>Free Range</td>
+                        <td>{{ $cage->type }}</td>
                     </tr>
                     <tr>
                         <th>Status</th>
-                        <td>Active</td>
+                        <td>{{ $cage->status }}</td>
                     </tr>
                 </tbody>
             </table>
-            
-            <form method="POST" action="#">
+
+            <form method="POST" action="{{ route('cages.destroy') }}">
                 @csrf
                 @method('DELETE')
+
+                <input type="hidden" name="cageID" value="{{ $cage->cageID }}">
+
                 <div class="form-group float-right">
                     <button type="submit" class="btn btn-danger">Delete</button>
-                    <a class="btn btn-secondary">Cancel</a>
-                    {{-- href="{{ route('cages.index') }}"  --}}
+                    <a href="{{ route('cages.index') }}" class="btn btn-secondary">Cancel</a>
                 </div>
             </form>
         </div>

@@ -2,13 +2,16 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CageController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ChickenController;
 use App\Http\Controllers\EggGradingController;
+use App\Http\Controllers\CullingPlanController;
+use App\Http\Controllers\FeedingPlanController;
 use App\Http\Middleware\RedirectIfAuthenticated;
 use App\Http\Controllers\CollectionPlanController;
-use App\Http\Controllers\FeedingPlanController;
-use App\Http\Controllers\CullingPlanController;
+use App\Http\Controllers\VaccinationPlanController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -100,11 +103,37 @@ Route::delete('/feedingplan/destroy', [FeedingPlanController::class, 'destroy'])
 Route::get('/cullingplan', [CullingPlanController::class, 'index'])->name('cullingplan.index');
 Route::get('/cullingplan/create', [CullingPlanController::class, 'create'])->name('cullingplan.create');
 Route::post('/cullingplan/store', [CullingPlanController::class, 'store'])->name('cullingplan.store');
-// Route::get('/cullingplan/{cullingPlan}', [CullingPlanController::class, 'show'])->name('cullingplan.show');
 Route::get('/cullingplan/{cullingPlanID}/edit', [CullingPlanController::class, 'edit'])->name('cullingplan.edit');
 Route::put('/cullingplan/update', [CullingPlanController::class, 'update'])->name('cullingplan.update');
 Route::get('/cullingplan/{cullingPlanID}/delete', [CullingPlanController::class, 'showDelete'])->name('cullingplan.delete');
 Route::delete('/cullingplan/destroy', [CullingPlanController::class, 'destroy'])->name('cullingplan.destroy');
+
+Route::get('/vaccinationplan', [VaccinationPlanController::class, 'index'])->name('vaccinationplan.index');
+Route::get('/vaccinationplan/create', [VaccinationPlanController::class, 'create'])->name('vaccinationplan.create');
+Route::post('/vaccinationplan/store', [VaccinationPlanController::class, 'store'])->name('vaccinationplan.store');
+Route::get('/vaccinationplan/{vaccinationplanID}/edit', [VaccinationPlanController::class, 'edit'])->name('vaccinationplan.edit');
+Route::put('/vaccinationplan/update', [VaccinationPlanController::class, 'update'])->name('vaccinationplan.update');
+Route::get('/vaccinationplan/{vaccinationplanID}/delete', [VaccinationPlanController::class, 'showDelete'])->name('vaccinationplan.delete');
+Route::delete('/vaccinationplan/destroy', [VaccinationPlanController::class, 'destroy'])->name('vaccinationplan.destroy');
+
+Route::get('/cages', [CageController::class, 'index'])->name('cages.index');
+Route::get('/cages/create', [CageController::class, 'create'])->name('cages.create');
+Route::post('/cages/store', [CageController::class, 'store'])->name('cages.store');
+Route::get('/cages/{cageID}/edit', [CageController::class, 'edit'])->name('cages.edit');
+Route::put('/cages/update', [CageController::class, 'update'])->name('cages.update');
+Route::get('/cages/{cageID}/delete', [CageController::class, 'showDelete'])->name('cages.showDelete');
+Route::delete('/cages/destroy', [CageController::class, 'destroy'])->name('cages.destroy');
+
+Route::get('/chickens', [ChickenController::class, 'index'])->name('chickens.index');
+Route::get('/chickens/create', [ChickenController::class, 'create'])->name('chickens.create');
+Route::post('/chickens/store', [ChickenController::class, 'store'])->name('chickens.store');
+Route::get('/chickens/{cageID}/{breedID}', [ChickenController::class, 'showGrouped'])->name('chickens.showGrouped'); // View grouped chickens
+Route::post('/chickens/group/edit', [ChickenController::class, 'editGroup'])->name('chickens.editGroup');
+Route::put('/chickens/group/update', [ChickenController::class, 'updateGroup'])->name('chickens.updateGroup');
+Route::post('/chickens/edit', [ChickenController::class, 'edit'])->name('chickens.edit'); // Edit individual chicken
+Route::put('/chickens/update', [ChickenController::class, 'update'])->name('chickens.update');
+Route::delete('/chickens/destroy', [ChickenController::class, 'destroy'])->name('chickens.destroy'); // Delete by group
+Route::delete('/chickens/destroyGrouped', [ChickenController::class, 'destroyGrouped'])->name('chickens.destroyGrouped'); // Delete by group
 
 // Route::get('/addResults', function () {
 //     return view('addResults');

@@ -169,7 +169,7 @@
               </a>
             </li>
             <li class="nav-item">
-              <a href="/chickenManagement" class="nav-link">
+              <a href="{{ route('chickens.index') }}" class="nav-link">
                 <i class="nav-icon fas fa-copy"></i>
                 <p>
                   Chicken Management
@@ -178,13 +178,13 @@
               </a>
               <ul class="nav nav-treeview">
                 <li class="nav-item">
-                  <a href="/cageManagement" class="nav-link">
+                  <a href="{{ route('cages.index') }}" class="nav-link">
                     <i class="far fa-circle nav-icon"></i>
                     <p>Cage Management</p>
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a href="/chickenManagement" class="nav-link">
+                  <a href="{{ route('chickens.index') }}" class="nav-link">
                     <i class="far fa-circle nav-icon"></i>
                     <p>Chicken Management</p>
                   </a>
@@ -195,7 +195,7 @@
             </li>
 
             <li class="nav-item">
-              <a href="/vaccinationplanManagement" class="nav-link">
+              <a href="{{ route('vaccinationplan.index') }}" class="nav-link">
                 <i class="fas fa-syringe nav-icon"></i>
                 <p>
                   Vaccination Management

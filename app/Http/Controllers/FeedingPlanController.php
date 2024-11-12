@@ -84,11 +84,22 @@ class FeedingPlanController extends Controller
 
     public function showDelete($feedingplanID)
     {
-
         $plan = FeedingPlan::findOrFail($feedingplanID);
-        return view('/deleteFeedingPlan', compact('plan'));
-    }
 
+        // Fetch all related tasks, assigned employees, and cage schedules
+        $tasks = TaskScheduling::where('feedingplanID', $feedingplanID)->get();
+
+        $relatedData = [];
+        foreach ($tasks as $task) {
+            $relatedData[] = [
+                'task' => $task,
+                'assignedEmployees' => AssignedEmployee::where('scheduleID', $task->scheduleID)->get(),
+                'cageSchedules' => CageSchedule::where('scheduleID', $task->scheduleID)->get(),
+            ];
+        }
+
+        return view('deleteFeedingPlan', compact('plan', 'tasks', 'relatedData'));
+    }
 
     public function destroy(Request $request)
     {

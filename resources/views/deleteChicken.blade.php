@@ -1,54 +1,35 @@
-@extends('/admin')
-
-@section('title', 'Confirm Deletion')
-
-@section('content_header')
-    <h1>Confirm Deletion</h1>
-@stop
+@extends('admin')
 
 @section('content')
-<div class="container" style="width: 80%; margin-top: 20px;">
-    <div class="row">
-        <div class="col-md-12 mt-5">
-            
-            <h1 class="mt-5">Confirm Deletion <i class="fas fa-exclamation-triangle"></i></h1>
-            
-            <div class="alert alert-danger">
-                <strong>Warning!</strong> You are about to delete a chicken.
-            </div>
-            
-            <table class="table">
-                <tbody>
-                    <!-- Hard-coded values -->
-                    <tr>
-                        <th>Chicken ID</th>
-                        <td>1</td>
-                    </tr>
-                    <tr>
-                        <th>Breed</th>
-                        <td>Rhode Island Red</td>
-                    </tr>
-                    <tr>
-                        <th>Date of Birth</th>
-                        <td>2023-01-15</td>
-                    </tr>
-                    <tr>
-                        <th>Cage ID</th>
-                        <td>1</td>
-                    </tr>
-                </tbody>
-            </table>
-            
-           <!-- Delete Confirmation Form -->
-           <form method="POST" action="#">
-            @csrf
-            @method('DELETE')
-            <div class="mt-3 float-right">
-                <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this chicken?')">Delete Chicken</button>
-                <a href="#" class="btn btn-secondary">Cancel</a>
-            </div>
-        </form>
+<div class="container">
+    <h1>Confirm Deletion</h1>
+    <div class="alert alert-danger">
+        <strong>Warning!</strong> You are about to delete a chicken.
     </div>
-</div>
+    <table class="table">
+        <tr>
+            <th>ID</th>
+            <td>{{ $chicken->chickenID }}</td>
+        </tr>
+        <tr>
+            <th>Breed</th>
+            <td>{{ $chicken->breed->name }}</td>
+        </tr>
+        <tr>
+            <th>Date of Birth</th>
+            <td>{{ $chicken->dob }}</td>
+        </tr>
+        <tr>
+            <th>Cage</th>
+            <td>{{ $chicken->cage->name }}</td>
+        </tr>
+    </table>
+    <form action="{{ route('chickens.destroy') }}" method="POST">
+        @csrf
+        @method('DELETE')
+        <input type="hidden" name="chickenID[]" value="{{ $chicken->chickenID }}">
+        <button type="submit" class="btn btn-danger">Delete Chicken</button>
+        <a href="{{ route('chickens.index') }}" class="btn btn-secondary">Cancel</a>
+    </form>
 </div>
 @stop
