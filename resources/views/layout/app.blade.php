@@ -150,13 +150,12 @@
 
             </li>
             <li class="nav-item">
-              {{-- <a href="#" class="nav-link">
-                <i class="nav-icon fas fa-tachometer-alt"></i>
+              <a href="{{ route('users.index') }}" class="nav-link">
+                <i class="fas fa-users-cog nav-icon"></i>
                 <p>
-                  Dashboard
-                  {{-- <i class="right fas fa-angle-left"></i>
+                  User Management
                 </p>
-              </a> --}}
+              </a>
 
             </li>
             <li class="nav-item">

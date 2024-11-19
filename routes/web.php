@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CageController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ChickenController;
 use App\Http\Controllers\EggGradingController;
@@ -65,6 +66,18 @@ Route::prefix('admin')->name('admin.')->middleware(RedirectIfAuthenticated::clas
     Route::post('/reset-password/{token}', [AuthController::class, 'resetPassword'])->name('password.reset.post');
     // Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
+
+// Route::get('/admin/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('admin.forgotPassword');
+Route::post('/admin/send-reset-link', [AuthController::class, 'sendResetLink'])->name('admin.sendResetLink');
+Route::get('/admin/reset-password/{token}', [AuthController::class, 'showResetForm'])->name('admin.resetPasswordForm');
+Route::post('/admin/reset-password/{token}', [AuthController::class, 'resetPassword'])->name('admin.resetPassword');
+
+// Profile viewing and editing
+Route::get('/profile', [AuthController::class, 'showProfile'])->name('profile.show');
+Route::post('/profile/update', [AuthController::class, 'updateProfile'])->name('profile.update');
+
+// Password update
+Route::post('/profile/update-password', [AuthController::class, 'updatePassword'])->name('profile.updatePassword');
 
 // Move logout outside of RedirectIfAuthenticated and add `auth` middleware for protection
 Route::post('/admin/logout', [AuthController::class, 'logout'])->name('admin.logout')->middleware('auth:web');
@@ -135,105 +148,14 @@ Route::put('/chickens/update', [ChickenController::class, 'update'])->name('chic
 Route::delete('/chickens/destroy', [ChickenController::class, 'destroy'])->name('chickens.destroy'); // Delete by group
 Route::delete('/chickens/destroyGrouped', [ChickenController::class, 'destroyGrouped'])->name('chickens.destroyGrouped'); // Delete by group
 
-// Route::get('/addResults', function () {
-//     return view('addResults');
-// });
+Route::get('/users', [UserController::class, 'index'])->name('users.index'); // List all users
+Route::get('/users/create', [UserController::class, 'create'])->name('users.create'); // Show create user form
+Route::post('/users/store', [UserController::class, 'store'])->name('users.store'); // Store new user
+Route::post('/users/edit', [UserController::class, 'edit'])->name('users.edit'); // Show edit user form
+Route::put('/users/update', [UserController::class, 'update'])->name('users.update'); // Update user
+Route::post('/users/delete', [UserController::class, 'showDelete'])->name('users.showDelete'); // Show delete confirmation
+Route::delete('/users/destroy', [UserController::class, 'destroy'])->name('users.destroy'); // Delete user
 
-// Route::get('/updateResults', function () {
-//     return view('updateResults');
-// });
-
-// Route::get('/deleteResults', function () {
-//     return view('deleteResults');
-// });
-
-Route::get('/cageManagement', function () {
-    return view('cageManagement');
-});
-
-Route::get('/addCage', function () {
-    return view('addCage');
-});
-
-Route::get('/updateCage', function () {
-    return view('updateCage');
-});
-
-Route::get('/deleteCage', function () {
-    return view('deleteCage');
-});
-
-Route::get('/chickenManagement', function () {
-    return view('chickenManagement');
-});
-
-Route::get('/addChicken', function () {
-    return view('addChicken');
-});
-
-Route::get('/updateChicken', function () {
-    return view('updateChicken');
-});
-
-Route::get('/deleteChicken', function () {
-    return view('deleteChicken');
-});
-
-Route::get('/deleteCage', function () {
-    return view('deleteCage');
-});
-
-Route::get('/vaccinationplanManagement', function () {
-    return view('vaccinationplanManagement');
-});
-
-Route::get('/addVaccinationPlan', function () {
-    return view('addVaccinationPlan');
-});
-
-Route::get('/updateVaccinationPlan', function () {
-    
-    return view('updateVaccinationPlan');
-});
-
-Route::get('/deleteVaccinationPlan', function () {
-    return view('deleteVaccinationPlan');
-});
-
-
-
-
-// Route::get('/feedingPlanManagement', function () {
-//     return view('feedingPlanManagement');
-// });
-
-// Route::get('/addFeedingPlan', function () {
-//     return view('addFeedingPlan');
-// });
-
-// Route::get('/updateFeedingPlan', function () {
-//     return view('updateFeedingPlan');
-// });
-
-// Route::get('/deleteFeedingPlan', function () {
-//     return view('deleteFeedingPlan');
-// });
-
-// Route::get('/cullingPlanManagement', function () {
-//     return view('cullingPlanManagement');
-// });
-
-// Route::get('/addCullingPlan', function () {
-//     return view('addCullingPlan');
-// });
-
-// Route::get('/updateCullingPlan', function () {
-//     return view('updateCullingPlan');
-// });
-
-// Route::get('/deleteCullingPlan', function () {
-//     return view('deleteCullingPlan');
-// });
 
 Route::get('/calender', function () {
     return view('calender');

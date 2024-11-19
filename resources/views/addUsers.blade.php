@@ -3,7 +3,7 @@
 @section('title', 'Create Users')
 
 @section('content_header')
-    <h1>Create Users</h1>
+<h1>Create Users</h1>
 @stop
 
 @section('content')
@@ -11,38 +11,41 @@
     <div class="row">
         <div class="col-md-12 mt-5">
             <h1 class="mt-5">Create Users <i class="fas fa-plus"></i></h1>
-            {{-- action="{{ route('Feeding-plans.store') }}" --}}
-            <form method="POST" >
+            <form method="POST" action="{{ route('users.store') }}">
                 @csrf
                 <div class="form-group">
                     <label for="name">Name</label>
-                    <input type="text" name="name" class="form-control" id="name" value="John Doe" required>
+                    <input type="text" name="name" class="form-control" id="name" required>
                 </div>
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="text" name="email" class="form-control" id="email" value="johndoe@gmail.com" required>
+                    <input type="email" name="email" class="form-control" id="email" required>
                 </div>
                 <div class="form-group">
-                    <label for="phoneno">Phone No</label>
-                    <input type="text" name="phoneNo" class="form-control" id="phoneNo" value="0132345678" required>
+                    <label for="phoneNo">Phone No</label>
+                    <input type="text" name="phoneNo" class="form-control" id="phoneNo">
                 </div>
                 <div class="form-group">
                     <label for="dob">Date Of Birth</label>
-                    <input type="date" name="dob" class="form-control" id="dob" value="Aug-07-2024" required>
+                    <input type="date" name="dob" class="form-control" id="dob">
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" name="pwd" class="form-control" id="inputPassword" value="******" required>
+                    <input type="password" name="password" class="form-control" id="password" required>
                 </div>
                 <div class="form-group">
                     <label for="role">Role</label>
-                    <input type="text" name="role" class="form-control" id="inputRole" value="Admin" required>
+                    <select name="roleID" class="form-control">
+                        @foreach($roles as $role)
+                        <option value="{{ $role->roleID }}">{{ $role->roleName }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="address">Address</label>
-                    <input type="text" name="address" class="form-control" id="inputAddress" value="Penang" required>
+                    <input type="text" name="address" class="form-control" id="address">
                 </div>
-                <button type="submit" class="btn btn-success float-right">Create Users</button>
+                <button type="submit" class="btn btn-success float-right">Create User</button>
             </form>
         </div>
     </div>

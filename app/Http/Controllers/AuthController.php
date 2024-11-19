@@ -185,27 +185,25 @@ class AuthController extends Controller
             return back()->withErrors(['email' => 'A password reset link has already been sent to this email. Please check your inbox.']);
         }
 
-        $user = User::where('email', $request->email)
-            ->where('roleID', 1) // Ensure the role ID is 1
-            ->where('status', true) // Ensure the status is active
-            ->first();
+        $user = User::where('email', $request->email)->where('roleID', 1)->where('status', true)->first();
 
         if ($user) {
             $token = Str::random(60);
 
-            // Insert or update the password reset token in the database
             DB::table('password_reset_tokens')->updateOrInsert(
                 ['email' => $request->email],
                 ['token' => $token, 'created_at' => now()]
             );
 
-            $url = "http://127.0.0.1:8001/zara/admin/reset-password/{$token}?email=" . urlencode($request->email);
-
+            $url = route('admin.resetPasswordForm', ['token' => $token, 'email' => urlencode($request->email)]);
             Mail::to($request->email)->send(new AdminResetPassword($url));
+
+            return back()->with('status', 'Password reset link sent to your email!');
         }
 
-        return back()->with('status', 'Verification code sent to your email!');
+        return back()->withErrors(['email' => 'No user found with this email.']);
     }
+
 
     public function showResetForm($token)
     {
@@ -225,39 +223,26 @@ class AuthController extends Controller
 
     public function resetPassword(Request $request, $token)
     {
-        // Validate the incoming request data
-        $validator = Validator::make($request->all(), [
+        $request->validate([
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput();
-        }
-
-        // Retrieve the token details
         $tokenDetails = DB::table('password_reset_tokens')->where('token', $token)->first();
 
         if (!$tokenDetails) {
             abort(403, 'This password reset token is invalid.');
         }
 
-        // Check if the token has expired (1 hour)
         if (Carbon::parse($tokenDetails->created_at)->addHour()->isPast()) {
             abort(403, 'This password reset token has expired.');
         }
 
-        // Update the user's password
-        $user = User::where('email', $tokenDetails->email)
-            ->where('roleID', 1) // Ensure the role ID is 1
-            ->where('status', true)
-            ->first();
+        $user = User::where('email', $tokenDetails->email)->where('roleID', 1)->where('status', true)->first();
 
         if ($user) {
-
             $user->password = Hash::make($request->password);
             $user->save();
 
-            // Optionally, delete the token from the database
             DB::table('password_reset_tokens')->where('email', $tokenDetails->email)->delete();
 
             return redirect()->route('admin.login')->with('status', 'Password has been reset successfully!');
@@ -265,6 +250,7 @@ class AuthController extends Controller
 
         return back()->withErrors(['email' => 'User not found.']);
     }
+
 
     // protected function logUserActivity($userId, $action, $request, $loginStatus)
     // {
@@ -293,4 +279,58 @@ class AuthController extends Controller
     //     // Log to a text file
     //     Storage::append('user_activity.log', $logEntry);
     // }
+
+    public function showProfile()
+    {
+        $user = auth()->user(); // Assuming you're using Laravel's built-in auth
+        return view('profile', compact('user'));
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $users = Auth::user();
+        $user = User::find($users->userID); // Retrieve the user model instance
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'phoneNo' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:255',
+            // Add more validation rules as needed
+        ]);
+        
+        // dd($request->input('address'), $request->input('phoneNo'));
+
+        $user->update([
+            'name' => $request->input('name'),
+            'email' => $request->input('email'),
+            'phoneNo' => $request->input('phoneNo'),
+            'address' => $request->input('address'),
+        ]);
+
+        return redirect()->route('profile.show')->with('success', 'Profile updated successfully.');
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'currentPassword' => 'required',
+            'newPassword' => 'required|string|min:8|confirmed',
+        ]);
+
+        $users = Auth::user();
+        $user = User::find($users->userID); // Retrieve the user model instance
+
+
+        if (!Hash::check($request->currentPassword, $user->password)) {
+            return redirect()->route('profile.show')->withErrors(['currentPassword' => 'Current password is incorrect.']);
+        }
+
+        $user->password = Hash::make($request->newPassword);
+        $user->save();
+
+        return redirect()->route('profile.show')->with('success', 'Password updated successfully.');
+    }
+    
+
 }
+ 

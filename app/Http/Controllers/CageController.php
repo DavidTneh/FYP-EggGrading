@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Egg;
 use App\Models\Cage;
+use App\Models\Chicken;
+use App\Models\CageSchedule;
 use Illuminate\Http\Request;
+use App\Models\VaccinationPlan;
 
 class CageController extends Controller
 {
@@ -94,22 +98,37 @@ class CageController extends Controller
     }
 
 
-    // Show confirmation for deletion
     public function showDelete($cageID)
     {
         $cage = Cage::findOrFail($cageID);
-        return view('deleteCage', compact('cage'));
+
+        // Retrieve related data
+        $chickens = Chicken::where('cageID', $cageID)->get();
+        $eggs = Egg::where('cageID', $cageID)->get();
+        $vaccinationPlans = VaccinationPlan::where('cageID', $cageID)->get();
+        $cageSchedules = CageSchedule::where('cageID', $cageID)->get();
+
+        // Pass the cage and related data to the view
+        return view('deleteCage', compact('cage', 'chickens', 'eggs', 'vaccinationPlans', 'cageSchedules'));
     }
 
     public function destroy(Request $request)
     {
-        $cage = Cage::findOrFail($request->input('cageID'));
+        $cageID = $request->input('cageID');
+        $cage = Cage::findOrFail($cageID);
 
-        if ($cage) {
-            $cage->delete();
-        }
+        // Manually delete related data in all tables that have a foreign key constraint on `cageID`
+        Chicken::where('cageID', $cageID)->delete();
+        Egg::where('cageID', $cageID)->delete();
+        VaccinationPlan::where('cageID', $cageID)->delete();
+        CageSchedule::where('cageID', $cageID)->delete();
 
-        return redirect()->route('cages.index')->with('success', 'Cage deleted successfully.');
+        $cage->delete();
+
+        // Redirect back to the cages list with a success message
+        return redirect()->route('cages.index')->with('success', 'Cage and all related data deleted successfully.');
     }
+
+
 
 }
