@@ -34,16 +34,16 @@
           <a href="/eggGrading" class="nav-link" style="color: #ffffff;">Grade Egg</a>
         </li>
         <li class="nav-item d-none d-sm-inline-block">
-          <a href="/taskSchedulingManagement" class="nav-link" style="color: #ffffff;">Task Scheduling</a>
+          <a href="{{ route('task-schedulings.index') }}" class="nav-link" style="color: #ffffff;">Task Scheduling</a>
         </li>
         <li class="nav-item d-none d-sm-inline-block">
           <a href="/reportManagement" class="nav-link" style="color: #ffffff;">Report</a>
         </li>
       </ul>
 
-      <!-- Right navbar links -->
+      <!-- Right navbar links
       <ul class="navbar-nav ml-auto">
-        <!-- Navbar Search -->
+         Navbar Search -->
         <li class="nav-item">
           <a class="nav-link" data-widget="navbar-search" href="#" role="button" style="color: #ffffff;">
             <i class="fas fa-search"></i>
@@ -206,7 +206,7 @@
             </li>
 
             <li class="nav-item">
-              <a href="/taskSchedulingManagement" class="nav-link">
+              <a href="{{ route('task-schedulings.index') }}" class="nav-link">
                 <i class="fas fa-tasks nav-icon"></i>
                 <p>
                   Task Scheduling

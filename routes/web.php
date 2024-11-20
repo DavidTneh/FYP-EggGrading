@@ -12,6 +12,7 @@ use App\Http\Controllers\CullingPlanController;
 use App\Http\Controllers\FeedingPlanController;
 use App\Http\Middleware\RedirectIfAuthenticated;
 use App\Http\Controllers\CollectionPlanController;
+use App\Http\Controllers\TaskSchedulingController;
 use App\Http\Controllers\VaccinationPlanController;
 /*
 |--------------------------------------------------------------------------
@@ -155,6 +156,16 @@ Route::post('/users/edit', [UserController::class, 'edit'])->name('users.edit');
 Route::put('/users/update', [UserController::class, 'update'])->name('users.update'); // Update user
 Route::post('/users/delete', [UserController::class, 'showDelete'])->name('users.showDelete'); // Show delete confirmation
 Route::delete('/users/destroy', [UserController::class, 'destroy'])->name('users.destroy'); // Delete user
+
+
+Route::get('/task-schedulings', [TaskSchedulingController::class, 'index'])->name('task-schedulings.index'); // List all task schedulings
+Route::get('/task-schedulings/create', [TaskSchedulingController::class, 'create'])->name('task-schedulings.create'); // Show create task scheduling form
+Route::post('/task-schedulings/store', [TaskSchedulingController::class, 'store'])->name('task-schedulings.store'); // Store new task scheduling
+Route::post('/task-schedulings/edit', [TaskSchedulingController::class, 'edit'])->name('task-schedulings.edit'); // Show edit task scheduling form
+Route::put('/task-schedulings/update', [TaskSchedulingController::class, 'update'])->name('task-schedulings.update'); // Update task scheduling
+Route::post('/task-schedulings/delete', [TaskSchedulingController::class, 'showDelete'])->name('task-schedulings.showDelete'); // Show delete confirmation
+Route::delete('/task-schedulings/destroy', [TaskSchedulingController::class, 'destroy'])->name('task-schedulings.destroy'); // Delete task scheduling
+Route::post('/task-schedulings/view', [TaskSchedulingController::class, 'view'])->name('task-schedulings.view');
 
 
 Route::get('/calender', function () {
