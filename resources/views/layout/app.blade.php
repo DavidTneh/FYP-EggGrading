@@ -34,7 +34,7 @@
           <a href="/eggGrading" class="nav-link" style="color: #ffffff;">Grade Egg</a>
         </li>
         <li class="nav-item d-none d-sm-inline-block">
-          <a href="{{ route('task-schedulings.index') }}" class="nav-link" style="color: #ffffff;">Task Scheduling</a>
+          <a href="{{ route('task-schedulings.calendar') }}" class="nav-link" style="color: #ffffff;">Calender</a>
         </li>
         <li class="nav-item d-none d-sm-inline-block">
           <a href="/reportManagement" class="nav-link" style="color: #ffffff;">Report</a>

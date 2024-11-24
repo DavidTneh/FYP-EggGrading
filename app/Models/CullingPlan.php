@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class CullingPlan extends Model
 {
-    protected $table = 'cullingPlan';
-    protected $primaryKey = 'cullingPlanID';
+    protected $table = 'cullingplan';
+    protected $primaryKey = 'cullingplanID';
 
     protected $fillable = [
         'eliminateAgeThreshold',

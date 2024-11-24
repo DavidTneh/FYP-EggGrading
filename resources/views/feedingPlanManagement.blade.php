@@ -11,8 +11,9 @@
     <div class="row">
         <div class="col-md-12 mt-5">
             <h1 class="mt-5">Feeding Plans</h1>
-            <a href="{{ route('feedingplan.create') }}" class="btn btn-success mb-3 float-right">Add New Feeding
-                Plan</a>
+            <a href="{{ route('feedingplan.create') }}" class="btn btn-success mb-3 float-right">
+                Add New Feeding Plan
+            </a>
 
             <!-- Feeding Plans List Table -->
             <table class="table table-striped">
@@ -31,12 +32,15 @@
                         <td>{{ $plan->feedingplanID }}</td>
                         <td>{{ \Carbon\Carbon::createFromFormat('H:i:s', $plan->time)->format('h:i A') }}</td>
                         <td>{{ $plan->frequency }}</td>
-                        <td>{{ $plan->repeat ? 'Yes' : 'No' }}</td>
+                        <td>{{ $plan->is_repeating ? 'Yes' : 'No' }}</td>
                         <td>
                             <a href="{{ route('feedingplan.edit', $plan->feedingplanID) }}"
                                 class="btn btn-primary btn-sm">Edit</a>
                             <a href="{{ route('feedingplan.delete', $plan->feedingplanID) }}"
-                                class="btn btn-danger btn-sm">Delete</a>
+                                class="btn btn-danger btn-sm"
+                                onclick="return confirm('Are you sure you want to delete this feeding plan?')">
+                                Delete
+                            </a>
                         </td>
                     </tr>
                     @endforeach

@@ -6,15 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class CageSchedule extends Model
 {
-    protected $table = 'cageSchedule';
+    protected $table = 'cageschedule';
     protected $primaryKey = 'cageScheduleID';
+    protected $fillable = ['cageID', 'scheduleID'];
 
     public function cage()
     {
         return $this->belongsTo(Cage::class, 'cageID');
     }
 
-    public function schedule()
+    public function taskScheduling()
     {
         return $this->belongsTo(TaskScheduling::class, 'scheduleID');
     }

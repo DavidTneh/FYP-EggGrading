@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -13,17 +14,17 @@ class CollectionPlanSeeder extends Seeder
             [
                 'time' => '08:00:00',
                 'frequency' => 'Daily',
-                'repeat' => 1,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'is_repeating' => true,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
             ],
             [
                 'time' => '12:00:00',
                 'frequency' => 'Weekly',
-                'repeat' => 0,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
+                'is_repeating' => true,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ]
         ]);
     }
 }

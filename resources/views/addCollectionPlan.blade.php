@@ -13,7 +13,7 @@
             <h1 class="mt-5">Create Collection Plan <i class="fas fa-plus"></i></h1>
 
             <form method="POST" action="{{ route('collectionplan.store') }}" onsubmit="formatTimeInput()">
-                @csrf 
+                @csrf
                 <div class="form-group">
                     <label for="time">Time (24-hour format)</label>
                     <input type="time" name="time" class="form-control" id="time" required>
@@ -28,8 +28,8 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="repeat">Repeat</label>
-                    <select name="repeat" class="form-control" id="repeat" required>
+                    <label for="is_repeating">Repeat</label>
+                    <select name="is_repeating" class="form-control" id="is_repeating" required>
                         <option value="1">Yes</option>
                         <option value="0">No</option>
                     </select>
@@ -43,7 +43,7 @@
 <script>
     function formatTimeInput() {
         const timeInput = document.getElementById('time');
-        if (timeInput.value.length === 5) { // e.g., "08:00"
+        if (timeInput.value.length === 5) {
             timeInput.value += ":00"; // Append seconds to format "08:00:00"
         }
     }

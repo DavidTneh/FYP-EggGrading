@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\CullingPlan;
 use App\Models\CageSchedule;
 use Illuminate\Http\Request;
 use App\Models\TaskScheduling;
 use App\Models\AssignedEmployee;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class CullingPlanController extends Controller
@@ -33,6 +35,20 @@ class CullingPlanController extends Controller
             'healthStatus' => 'required|string|max:255',
             'notes' => 'nullable|string'
         ]);
+
+        // Fetch the earliest chicken's DOB in the associated cages (example logic)
+        // $earliestChickenDOB = DB::table('chickens')
+        //     ->join('cages', 'chickens.cageID', '=', 'cages.cageID')
+        //     ->select('chickens.dob')
+        //     ->orderBy('chickens.dob', 'asc')
+        //     ->value('dob');
+
+        // Calculate culling_date
+        // if ($earliestChickenDOB) {
+        //     $cullingDate = Carbon::parse($earliestChickenDOB)
+        //         ->addMonths($validated['eliminateAgeThreshold']);
+        //     $validated['culling_date'] = $cullingDate->toDateString();
+        // }
 
         CullingPlan::create($validated);
 
@@ -64,13 +80,24 @@ class CullingPlanController extends Controller
 
         $id = $request->input('cullingplanID');
 
+        // // Fetch the earliest chicken's DOB in the associated cages (example logic)
+        // $earliestChickenDOB = DB::table('chickens')
+        //     ->join('cages', 'chickens.cageID', '=', 'cages.cageID')
+        //     ->select('chickens.dob')
+        //     ->orderBy('chickens.dob', 'asc')
+        //     ->value('dob');
+
+        $updateData = $request->only(['eliminateAgeThreshold', 'reasons', 'healthStatus', 'notes']);
+
+        // Calculate culling_date
+        // if ($earliestChickenDOB) {
+        //     $cullingDate = Carbon::parse($earliestChickenDOB)
+        //         ->addMonths($request->input('eliminateAgeThreshold'));
+        //     $updateData['culling_date'] = $cullingDate->toDateString();
+        // }
+
         // Update the culling plan
-        CullingPlan::where('cullingplanID', $id)->update([
-            'eliminateAgeThreshold' => $request->input('eliminateAgeThreshold'),
-            'reasons' => $request->input('reasons'),
-            'healthStatus' => $request->input('healthStatus'),
-            'notes' => $request->input('notes')
-        ]);
+        CullingPlan::where('cullingplanID', $id)->update($updateData);
 
         return redirect()->route('cullingplan.index')->with('success', 'Culling plan updated successfully.');
     }
@@ -97,14 +124,10 @@ class CullingPlanController extends Controller
 
     // Delete the specified culling plan from the database
     public function destroy(Request $request)
-    {
+    {   
         try {
             $id = $request->input('cullingplanID');
             Log::info("Attempting to delete CullingPlan with ID: $id");
-
-            // Find the culling plan by ID
-            $cullingPlan = CullingPlan::findOrFail($id);
-            $cullingPlan->delete();
 
             // Get all tasks associated with this culling plan
             $tasks = TaskScheduling::where('cullingplanID', $id)->get();
@@ -117,15 +140,17 @@ class CullingPlanController extends Controller
 
             // Delete all associated tasks in taskscheduling
             TaskScheduling::where('cullingplanID', $id)->delete();
+            // Find the culling plan by ID
+            $cullingPlan = CullingPlan::findOrFail($id);
+            $cullingPlan->delete();
             Log::info("Associated tasks deleted.");
 
-            CullingPlan::where('cullingplanID', $id)->delete();
             Log::info("CullingPlan with ID $id deleted successfully.");
 
             return redirect()->route('cullingplan.index')->with('success', 'Culling plan deleted successfully.');
         } catch (\Exception $e) {
             Log::error("Failed to delete Culling Plan: " . $e->getMessage());
-            return response()->json(['error' => 'Failed to delete Culling Plan: ' . $e->getMessage()], 500);
+            return redirect()->route('cullingplan.index')->with('error', 'Failed to delete Culling Plan.');
         }
     }
 }

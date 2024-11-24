@@ -14,6 +14,8 @@ return new class extends Migration
             $table->foreign('cageID')->references('cageID')->on('cage');
             $table->unsignedInteger('scheduleID');
             $table->foreign('scheduleID')->references('scheduleID')->on('taskScheduling');
+            $table->date('start_date')->nullable()->comment('Start date for the schedule');
+            $table->date('culling_date')->nullable()->comment('Date when culling should occur');
             $table->timestamps();
         });
     }
@@ -22,5 +24,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('cageSchedule');
     }
-
 };

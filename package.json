@@ -23,6 +23,8 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "@fullcalendar/core": "^6.1.15",
+        "@fullcalendar/daygrid": "^6.1.15",
         "chart.js": "^4.4.3",
         "three": "^0.167.0"
     }

@@ -10,9 +10,9 @@ return new class extends Migration
     {
         Schema::create('collectionplan', function (Blueprint $table) {
             $table->increments('collectionplanID');
-            $table->time('time');
-            $table->string('frequency');
-            $table->boolean('repeat');
+            $table->time('time')->comment('Time for collection tasks');
+            $table->string('frequency')->comment('Frequency (e.g., Daily, Weekly)');
+            $table->boolean('is_repeating')->default(false)->comment('Indicates if the collection repeats');
             $table->timestamps();
         });
     }
@@ -21,5 +21,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('collectionplan');
     }
-
 };

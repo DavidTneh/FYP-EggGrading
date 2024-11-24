@@ -16,27 +16,49 @@
             </div>
             <div class="card">
                 <div class="card-body">
+                    <!-- Task Details -->
                     <p class="card-text"><strong>Task Name:</strong> {{ $taskScheduling->taskName }}</p>
                     <p class="card-text"><strong>Description:</strong> {{ $taskScheduling->taskDescription }}</p>
-                    <p class="card-text"><strong>Collection Plan:</strong>
-                        {{ $collectionPlan->time ?? 'N/A' }} -
-                        {{ $collectionPlan->frequency ?? 'N/A' }}
-                        ({{ $collectionPlan->repeat ? 'Repeats' : 'One-time' }})
-                    </p>
-                    <p class="card-text"><strong>Feeding Plan:</strong>
-                        {{ $feedingPlan->time ?? 'N/A' }} -
-                        {{ $feedingPlan->frequency ?? 'N/A' }}
-                        ({{ $feedingPlan->repeat ? 'Repeats' : 'One-time' }})
-                    </p>
-                    <p class="card-text"><strong>Culling Plan:</strong>
-                        {{ $cullingPlan->eliminateAgeThreshold ?? 'N/A' }} weeks -
-                        {{ $cullingPlan->healthStatus ?? 'N/A' }}
-                        ({{ $cullingPlan->reasons ?? 'N/A' }})
-                    </p>
-                    <p class="card-text"><strong>Status:</strong> {{ $taskScheduling->status }}</p>
 
-                    <form action="{{ route('task-schedulings.destroy') }}" method="POST"
-                        onsubmit="return confirm('Are you sure you want to delete this task scheduling? Once deleted, it cannot be recovered!');">
+                    <!-- Assigned Employees -->
+                    <h4>Assigned Employees:</h4>
+                    @if($assignedEmployees->isNotEmpty())
+                    <ul>
+                        @foreach($assignedEmployees as $employee)
+                        <li>{{ $employee->name ?? 'Unknown' }} ({{ $employee->email ?? 'No email' }})</li>
+                        @endforeach
+                    </ul>
+                    @else
+                    <p class="text-muted">No employees assigned.</p>
+                    @endif
+
+                    <!-- Cages -->
+                    <h4>Related Cages:</h4>
+                    @if($cageSchedules->isNotEmpty())
+                    <ul>
+                        @foreach($cageSchedules as $cage)
+                        <li>{{ $cage->name ?? 'Unknown' }} - {{ $cage->size ?? 'Unknown' }} (Capacity: {{
+                            $cage->capacity ??
+                            'Unknown' }})</li>
+                        @endforeach
+                    </ul>
+                    @else
+                    <p class="text-muted">No cages assigned.</p>
+                    @endif
+
+                    <!-- Related Plans -->
+                    <h4>Collection Plan:</h4>
+                    <p>{{ $collectionPlan->time ?? 'N/A' }} - {{ $collectionPlan->frequency ?? 'N/A' }}</p>
+
+                    <h4>Feeding Plan:</h4>
+                    <p>{{ $feedingPlan->time ?? 'N/A' }} - {{ $feedingPlan->frequency ?? 'N/A' }}</p>
+
+                    <h4>Culling Plan:</h4>
+                    <p>{{ $cullingPlan->eliminateAgeThreshold ?? 'N/A' }} weeks - {{ $cullingPlan->healthStatus ?? 'N/A'
+                        }}</p>
+
+                    <!-- Actions -->
+                    <form action="{{ route('task-schedulings.destroy') }}" method="POST">
                         @csrf
                         @method('DELETE')
                         <input type="hidden" name="scheduleID" value="{{ $taskScheduling->scheduleID }}">

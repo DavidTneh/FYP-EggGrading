@@ -167,6 +167,10 @@ Route::post('/task-schedulings/delete', [TaskSchedulingController::class, 'showD
 Route::delete('/task-schedulings/destroy', [TaskSchedulingController::class, 'destroy'])->name('task-schedulings.destroy'); // Delete task scheduling
 Route::post('/task-schedulings/view', [TaskSchedulingController::class, 'view'])->name('task-schedulings.view');
 
+Route::get('/task-schedulings/calendar', [TaskSchedulingController::class, 'showCalendar'])->name('task-schedulings.calendar');
+
+Route::get('/calendar', [TaskSchedulingController::class, 'showCalendar'])->name('calendar');
+Route::get('/calendar-data', [TaskSchedulingController::class, 'getCalendarData'])->name('calendar-data');
 
 Route::get('/calender', function () {
     return view('calender');

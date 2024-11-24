@@ -35,10 +35,10 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="repeat">Repeat</label>
-                    <select name="repeat" class="form-control" id="repeat" required>
-                        <option value="1" {{ $collectionPlan->repeat ? 'selected' : '' }}>Yes</option>
-                        <option value="0" {{ !$collectionPlan->repeat ? 'selected' : '' }}>No</option>
+                    <label for="is_repeating">Repeat</label>
+                    <select name="is_repeating" class="form-control" id="is_repeating" required>
+                        <option value="1" {{ $collectionPlan->is_repeating ? 'selected' : '' }}>Yes</option>
+                        <option value="0" {{ !$collectionPlan->is_repeating ? 'selected' : '' }}>No</option>
                     </select>
                 </div>
                 <button type="submit" class="btn btn-success float-right">Update Collection Plan</button>

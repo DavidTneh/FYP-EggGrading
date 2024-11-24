@@ -15,7 +15,7 @@
             <form method="POST" action="{{ route('cullingplan.store') }}">
                 @csrf
                 <div class="form-group">
-                    <label for="eliminateAgeThreshold">Eliminate Age Threshold (in months)</label>
+                    <label for="eliminateAgeThreshold">Eliminate Age Threshold (in weeks)</label>
                     <input type="number" name="eliminateAgeThreshold" class="form-control" id="eliminateAgeThreshold"
                         required>
                 </div>

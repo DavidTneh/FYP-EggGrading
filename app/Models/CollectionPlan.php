@@ -6,13 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class CollectionPlan extends Model
 {
-    protected $table = 'collectionPlan';
-    protected $primaryKey = 'collectionPlanID';
-    
+    protected $table = 'collectionplan';
+    protected $primaryKey = 'collectionplanID';
 
     protected $fillable = [
         'time',
         'frequency',
-        'repeat',
+        'is_repeating',
     ];
+
 }

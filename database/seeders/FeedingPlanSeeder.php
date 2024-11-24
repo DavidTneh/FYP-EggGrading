@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -11,19 +12,19 @@ class FeedingPlanSeeder extends Seeder
     {
         DB::table('feedingplan')->insert([
             [
-                'time' => '09:00:00',
+                'time' => '07:00:00',
                 'frequency' => 'Daily',
-                'repeat' => 1,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'is_repeating' => true,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
             ],
             [
-                'time' => '17:00:00',
+                'time' => '14:00:00',
                 'frequency' => 'Weekly',
-                'repeat' => 0,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
+                'is_repeating' => true,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ]
         ]);
     }
 }

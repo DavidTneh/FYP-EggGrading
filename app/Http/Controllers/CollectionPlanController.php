@@ -23,7 +23,7 @@ class CollectionPlanController extends Controller
     public function create()
     {
         return view('addCollectionPlan');
-    } 
+    }
 
     // Store a newly created collection plan in the database
     public function store(Request $request)
@@ -31,7 +31,7 @@ class CollectionPlanController extends Controller
         $validated = $request->validate([
             'time' => 'required|date_format:H:i:s',
             'frequency' => 'required|string|max:255',
-            'repeat' => 'required|int'
+            'is_repeating' => 'required|boolean',
         ]);
 
         CollectionPlan::create($validated);
@@ -48,7 +48,6 @@ class CollectionPlanController extends Controller
     // Show the form for editing the specified collection plan
     public function edit($collectionplanID)
     {
-
         $collectionPlan = CollectionPlan::findOrFail($collectionplanID);
 
         return view('updateCollectionPlan', compact('collectionPlan'));
@@ -57,10 +56,11 @@ class CollectionPlanController extends Controller
     // Update the specified collection plan in the database
     public function update(Request $request)
     {
+        
         $request->validate([
             // 'time' => 'required|date_format:H:i:s',
             'frequency' => 'required|string|max:255',
-            'repeat' => 'required|boolean'
+            'is_repeating' => 'required|boolean',
         ]);
 
         $id = $request->input('collectionplanID');
@@ -75,7 +75,7 @@ class CollectionPlanController extends Controller
         CollectionPlan::where('collectionplanID', $id)->update([
             'time' => $time,
             'frequency' => $request->input('frequency'),
-            'repeat' => $request->input('repeat')
+            'is_repeating' => $request->input('is_repeating'),
         ]);
 
         return redirect()->route('collectionplan.index')->with('success', 'Collection plan updated successfully.');
@@ -101,20 +101,16 @@ class CollectionPlanController extends Controller
         return view('deleteCollectionPlan', compact('plan', 'tasks', 'relatedData'));
     }
 
-
-
     public function destroy(Request $request)
     {
         try {
             $id = $request->input('collectionplanID');
+            
             Log::info("Attempting to delete CollectionPlan with ID: $id");
 
-            // Find the collection plan by ID
-            $collectionPlan = CollectionPlan::findOrFail($id);
-            $collectionPlan->delete();
             // Get all tasks associated with this collection plan
             $tasks = TaskScheduling::where('collectionplanID', $id)->get();
-
+            
             foreach ($tasks as $task) {
                 Log::info("Deleting records associated with Task ID: " . $task->scheduleID);
                 AssignedEmployee::where('scheduleID', $task->scheduleID)->delete();
@@ -123,18 +119,19 @@ class CollectionPlanController extends Controller
 
             // Delete all associated tasks in taskscheduling
             TaskScheduling::where('collectionplanID', $id)->delete();
-            Log::info("Associated tasks deleted.");
 
-            CollectionPlan::where('collectionplanID', $id)->delete();
+            // Find the collection plan by ID
+            $collectionPlan = CollectionPlan::findOrFail($id);
+
+            $collectionPlan->delete();
+            Log::info("Associated tasks deleted.");
 
             Log::info("CollectionPlan with ID $id deleted successfully.");
 
             return redirect()->route('collectionplan.index')->with('success', 'Collection plan deleted successfully.');
         } catch (\Exception $e) {
             Log::error("Failed to delete Collection Plan: " . $e->getMessage());
-            return response()->json(['error' => 'Failed to delete Collection Plan: ' . $e->getMessage()], 500);
+            return redirect()->route('collectionplan.index')->with('error', 'Failed to delete Collection Plan.');
         }
     }
-
-
 }

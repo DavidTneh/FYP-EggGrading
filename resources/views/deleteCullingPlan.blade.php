@@ -32,39 +32,10 @@
                 <dd class="col-sm-9">{{ $plan->notes }}</dd>
             </dl>
 
-            <h3>Related Tasks and Data to be Deleted:</h3>
-
-            @foreach ($tasks as $task)
-            <div class="card mb-3">
-                <div class="card-header">
-                    <strong>Task ID:</strong> {{ $task->scheduleID }} - {{ $task->taskName }}
-                </div>
-                <div class="card-body">
-                    <p><strong>Description:</strong> {{ $task->taskDescription }}</p>
-                    <p><strong>Status:</strong> {{ $task->status }}</p>
-
-                    <h5>Assigned Employees:</h5>
-                    <ul>
-                        @foreach ($relatedData[$loop->index]['assignedEmployees'] as $employee)
-                        <li>{{ $employee->userID }}</li>
-                        @endforeach
-                    </ul>
-
-                    <h5>Cage Schedules:</h5>
-                    <ul>
-                        @foreach ($relatedData[$loop->index]['cageSchedules'] as $cageSchedule)
-                        <li>Cage ID: {{ $cageSchedule->cageID }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            </div>
-            @endforeach
-
             <form action="{{ route('cullingplan.destroy', $plan->cullingplanID) }}" method="POST">
                 @csrf
                 @method('DELETE')
 
-                <!-- Hidden field to pass the culling plan ID -->
                 <input type="hidden" name="cullingplanID" value="{{ $plan->cullingplanID }}">
 
                 <div class="float-right">

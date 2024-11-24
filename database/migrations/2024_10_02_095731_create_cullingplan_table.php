@@ -10,10 +10,10 @@ return new class extends Migration
     {
         Schema::create('cullingplan', function (Blueprint $table) {
             $table->increments('cullingplanID');
-            $table->integer('eliminateAgeThreshold');
-            $table->text('reasons');
-            $table->string('healthStatus');
-            $table->text('notes');
+            $table->integer('eliminateAgeThreshold')->comment('Threshold in weeks to determine culling date');
+            $table->text('reasons')->comment('Reasons for culling');
+            $table->string('healthStatus')->comment('Health status criteria for culling');
+            $table->text('notes')->nullable()->comment('Additional notes');
             $table->timestamps();
         });
     }
@@ -22,5 +22,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('cullingplan');
     }
-
 };
