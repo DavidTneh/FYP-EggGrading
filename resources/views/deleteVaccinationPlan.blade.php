@@ -26,11 +26,14 @@
                 <dt class="col-sm-3">Vaccination per Chicken:</dt>
                 <dd class="col-sm-9">{{ $plan->vaccinationPerChicken }}</dd>
 
-                <dt class="col-sm-3">Cage:</dt>
+                <dt class="col-sm-3">Age Thres Hold:</dt>
+                <dd class="col-sm-9">{{ $plan->ageThreshold }}</dd>
+
+                {{-- <dt class="col-sm-3">Cage:</dt>
                 <dd class="col-sm-9">{{ $plan->cage->name ?? 'Unknown' }}</dd>
 
                 <dt class="col-sm-3">Total Vaccinations Required:</dt>
-                <dd class="col-sm-9">{{ $plan->totalVaccinationRequired }}</dd>
+                <dd class="col-sm-9">{{ $plan->totalVaccinationRequired }}</dd> --}}
             </dl>
 
             <form action="{{ route('vaccinationplan.destroy') }}" method="POST">

@@ -7,16 +7,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class VaccinationPlan extends Model
 {
-    protected $table = 'vaccinationPlan';
-    protected $primaryKey = 'vaccinationPlanID';
+    protected $table = 'vaccinationplan';
+    protected $primaryKey = 'vaccinationplanID';
 
     protected $fillable = [
         'vaccinationtypeID',
         'vaccinationPerChicken',
-        'cageID',
-        'totalVaccinationRequired',
-        'date'
+        'ageThreshold',
     ];
+
+
 
     // Relationship with VaccinationType
     public function vaccinationType()
@@ -24,6 +24,11 @@ class VaccinationPlan extends Model
         return $this->belongsTo(VaccinationType::class, 'vaccinationtypeID');
     }
 
+    public function vaccinationRecords()
+    {
+        return $this->hasMany(VaccinationRecords::class, 'vaccinationplanID','vaccinationplanID');
+    }
+    
     // Relationship with Cage
     public function cage()
     {

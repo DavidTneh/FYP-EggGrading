@@ -8,7 +8,7 @@ class CageSchedule extends Model
 {
     protected $table = 'cageschedule';
     protected $primaryKey = 'cageScheduleID';
-    protected $fillable = ['cageID', 'scheduleID'];
+    protected $fillable = ['cageID', 'scheduleID','start_date','end_date','culling_date'];
 
     public function cage()
     {

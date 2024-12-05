@@ -9,6 +9,7 @@
             <tr>
                 <th>Chicken ID</th>
                 <th>Date of Birth</th>
+                <th>QR Code</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -17,6 +18,18 @@
             <tr>
                 <td>{{ $chicken->chickenID }}</td>
                 <td>{{ $chicken->dob }}</td>
+                <td>
+                    @if($chicken->qrCode)
+                    <img id="qrCodeImage-{{ $chicken->chickenID }}" src="{{ $chicken->qrCode }}"
+                        alt="QR Code for Chicken" style="width:100px; height:100px;">
+                    <button class="btn btn-success btn-sm"
+                        onclick="printQRCode('qrCodeImage-{{ $chicken->chickenID }}')">
+                        Print QR
+                    </button>
+                    @else
+                    No QR Code Available
+                    @endif
+                </td>
                 <td>
                     <form action="{{ route('chickens.edit') }}" method="POST" style="display:inline;">
                         @csrf
@@ -40,4 +53,28 @@
 
     <a href="{{ route('chickens.index') }}" class="btn btn-secondary mt-3">Back to Chicken Management</a>
 </div>
+
+<script>
+    function printQRCode(imageId) {
+        const qrImage = document.getElementById(imageId).outerHTML;
+        const newWindow = window.open('', '_blank', 'width=600,height=600');
+        newWindow.document.write(`
+            <html>
+            <head>
+                <title>Print QR Code</title>
+                <style>
+                    body { display: flex; justify-content: center; align-items: center; height: 100%; margin: 0; }
+                </style>
+            </head>
+            <body>
+                ${qrImage}
+                <script>
+                    window.onload = function () { window.print(); window.close(); };
+                <\/script>
+            </body>
+            </html>
+        `);
+        newWindow.document.close();
+    }
+</script>
 @stop

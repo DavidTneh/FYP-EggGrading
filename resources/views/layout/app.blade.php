@@ -37,69 +37,44 @@
           <a href="{{ route('task-schedulings.calendar') }}" class="nav-link" style="color: #ffffff;">Calender</a>
         </li>
         <li class="nav-item d-none d-sm-inline-block">
+          @if(Auth::user()->roleID === 1)
           <a href="/reportManagement" class="nav-link" style="color: #ffffff;">Report</a>
+          @endif
         </li>
       </ul>
 
       <!-- Right navbar links
       <ul class="navbar-nav ml-auto">
          Navbar Search -->
-        <li class="nav-item">
-          <a class="nav-link" data-widget="navbar-search" href="#" role="button" style="color: #ffffff;">
-            <i class="fas fa-search"></i>
-          </a>
-          <div class="navbar-search-block" style="background-color: #343a40; border: 1px solid #ffc107;">
-            <form class="form-inline">
-              <div class="input-group input-group-sm">
-                <input class="form-control form-control-navbar" type="search" placeholder="Search" aria-label="Search"
-                  style="background-color: #6c757d; color: #ffffff;">
-                <div class="input-group-append">
-                  <button class="btn btn-navbar" type="submit" style="background-color: #ffc107; color: #343a40;">
-                    <i class="fas fa-search"></i>
-                  </button>
-                  <button class="btn btn-navbar" type="button" data-widget="navbar-search"
-                    style="background-color: #ffc107; color: #343a40;">
-                    <i class="fas fa-times"></i>
-                  </button>
-                </div>
+      <li class="nav-item">
+        {{-- <a class="nav-link" data-widget="navbar-search" href="#" role="button" style="color: #ffffff;">
+          <i class="fas fa-search"></i>
+        </a>
+        <div class="navbar-search-block" style="background-color: #343a40; border: 1px solid #ffc107;">
+          <form class="form-inline">
+            <div class="input-group input-group-sm">
+              <input class="form-control form-control-navbar" type="search" placeholder="Search" aria-label="Search"
+                style="background-color: #6c757d; color: #ffffff;">
+              <div class="input-group-append">
+                <button class="btn btn-navbar" type="submit" style="background-color: #ffc107; color: #343a40;">
+                  <i class="fas fa-search"></i>
+                </button>
+                <button class="btn btn-navbar" type="button" data-widget="navbar-search"
+                  style="background-color: #ffc107; color: #343a40;">
+                  <i class="fas fa-times"></i>
+                </button>
               </div>
-            </form>
-          </div>
-        </li>
+            </div>
+          </form>
+        </div> --}}
+      </li>
 
-        <!-- Notifications Dropdown Menu -->
-        <li class="nav-item dropdown">
-          <a class="nav-link" data-toggle="dropdown" href="#" style="color: #ffffff;">
-            <i class="far fa-bell"></i>
-            <span class="badge badge-warning navbar-badge">15</span>
-          </a>
-          <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right"
-            style="background-color: #343a40; color: #ffffff;">
-            <span class="dropdown-item dropdown-header">15 Notifications</span>
-            <div class="dropdown-divider"></div>
-            <a href="#" class="dropdown-item" style="color: #ffffff;">
-              <i class="fas fa-envelope mr-2"></i> 4 new messages
-              <span class="float-right text-muted text-sm">3 mins</span>
-            </a>
-            <div class="dropdown-divider"></div>
-            <a href="#" class="dropdown-item" style="color: #ffffff;">
-              <i class="fas fa-users mr-2"></i> 8 friend requests
-              <span class="float-right text-muted text-sm">12 hours</span>
-            </a>
-            <div class="dropdown-divider"></div>
-            <a href="#" class="dropdown-item" style="color: #ffffff;">
-              <i class="fas fa-file mr-2"></i> 3 new reports
-              <span class="float-right text-muted text-sm">2 days</span>
-            </a>
-            <div class="dropdown-divider"></div>
-            <a href="#" class="dropdown-item dropdown-footer" style="color: #ffffff;">See All Notifications</a>
-          </div>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" data-widget="fullscreen" href="#" role="button" style="color: #ffffff;">
-            <i class="fas fa-expand-arrows-alt"></i>
-          </a>
-        </li>
+      <!-- Notifications Dropdown Menu -->
+      <li class="nav-item">
+        <a class="nav-link" data-widget="fullscreen" href="#" role="button" style="color: #ffffff;">
+          <i class="fas fa-expand-arrows-alt"></i>
+        </a>
+      </li>
 
       </ul>
     </nav>
@@ -143,19 +118,20 @@
                 <i class="nav-icon fas fa-id-badge"></i>
                 <p>
                   Profile
-
                   {{-- <i class="right fas fa-angle-left"></i> --}}
                 </p>
               </a>
 
             </li>
             <li class="nav-item">
+              @if(Auth::user()->roleID === 1)
               <a href="{{ route('users.index') }}" class="nav-link">
                 <i class="fas fa-users-cog nav-icon"></i>
                 <p>
                   User Management
                 </p>
               </a>
+              @endif
 
             </li>
             <li class="nav-item">
@@ -194,18 +170,29 @@
             </li>
 
             <li class="nav-item">
+              @if(Auth::user()->roleID === 1)
               <a href="{{ route('vaccinationplan.index') }}" class="nav-link">
                 <i class="fas fa-syringe nav-icon"></i>
                 <p>
                   Vaccination Management
-
                 </p>
               </a>
-
-
+              @endif
             </li>
 
             <li class="nav-item">
+              @if(Auth::user()->roleID === 1)
+              <a href="{{ route('vaccination_records.index') }}" class="nav-link">
+                <i class="fas fa-syringe nav-icon"></i>
+                <p>
+                  Vaccination Records
+                </p>
+              </a>
+              @endif
+            </li>
+
+            <li class="nav-item">
+              @if(Auth::user()->roleID === 1)
               <a href="{{ route('task-schedulings.index') }}" class="nav-link">
                 <i class="fas fa-tasks nav-icon"></i>
                 <p>
@@ -213,73 +200,61 @@
 
                 </p>
               </a>
-
-
+              @endif
             </li>
 
             <li class="nav-item">
+              @if(Auth::user()->roleID === 1)
               <a href="{{ route('collectionplan.index') }}" class="nav-link">
                 <i class="fas fa-hand-holding nav-icon"></i>
                 <p>
                   Collection Plan
                 </p>
               </a>
+              @endif
+
 
             </li>
             <li class="nav-item">
+              @if(Auth::user()->roleID === 1)
               <a href="{{ route('feedingplan.index') }}" class="nav-link">
                 <i class="fas fa-cookie-bite nav-icon"></i>
                 <p>
                   Feeding Plan
                 </p>
               </a>
-
+              @endif
             </li>
 
             <li class="nav-item">
+              @if(Auth::user()->roleID === 1)
               <a href="{{ route('cullingplan.index') }}" class="nav-link">
                 <i class="far fa-window-close nav-icon"></i>
                 <p>
                   Culling Plan
                 </p>
               </a>
-
+              @endif
             </li>
 
             <li class="nav-item">
-              <a href="/reportManagement" class="nav-link">
+              @if(Auth::user()->roleID === 1)
+              <a href="{{ route('dashboard.index') }}" class="nav-link">
                 <i class="nav-icon fas fa-chart-pie"></i>
                 <p>
                   Reports
-                  <i class="right fas fa-angle-left"></i>
                 </p>
               </a>
-              <ul class="nav nav-treeview">
-                <li class="nav-item">
-                  <a href="../charts/chartjs.html" class="nav-link">
-                    <i class="far fa-circle nav-icon"></i>
-                    <p>ChartJS</p>
-                  </a>
-                </li>
-                <li class="nav-item">
-                  <a href="../charts/flot.html" class="nav-link">
-                    <i class="far fa-circle nav-icon"></i>
-                    <p>Flot</p>
-                  </a>
-                </li>
-                <li class="nav-item">
-                  <a href="../charts/inline.html" class="nav-link">
-                    <i class="far fa-circle nav-icon"></i>
-                    <p>Inline</p>
-                  </a>
-                </li>
-                <li class="nav-item">
-                  <a href="../charts/uplot.html" class="nav-link">
-                    <i class="far fa-circle nav-icon"></i>
-                    <p>uPlot</p>
-                  </a>
-                </li>
-              </ul>
+              
+              @endif
+
+            </li>
+            
+            <li class="nav-item">
+              <a href="{{ route('employee.listAssignedTasks') }}" class="nav-link">
+                <i class="fas fa-check nav-icon"></i>
+                <p>Task Submission Form</p>
+              </a>
             </li>
 
             {{-- <li class="nav-item">

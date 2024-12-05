@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\VaccinationPlan;
-use App\Models\VaccinationType;
 use App\Models\Cage;
 use Illuminate\Http\Request;
+use App\Models\VaccinationPlan;
+use App\Models\VaccinationType;
+use Illuminate\Support\Facades\Log;
 
 class VaccinationPlanController extends Controller
 {
@@ -32,23 +33,25 @@ class VaccinationPlanController extends Controller
         $request->validate([
             'vaccinationtypeID' => 'required|exists:vaccinationtype,vaccinationtypeID',
             'vaccinationPerChicken' => 'required|integer|min:1',
-            'cageID' => 'required|integer|exists:cage,cageID',
-            'date' => 'required|date',
+            'ageThreshold' => 'required',
+            // 'cageID' => 'required|integer|exists:cage,cageID',
+            // 'date' => 'required|date',
         ]);
 
         // Retrieve the selected cage
-        $cage = Cage::withCount('chickens')->findOrFail($request->input('cageID'));
+        // $cage = Cage::withCount('chickens')->findOrFail($request->input('cageID'));
 
         // Calculate total vaccinations required
-        $totalVaccinationRequired = $cage->chickens_count * $request->input('vaccinationPerChicken');
+        // $totalVaccinationRequired = $cage->chickens_count * $request->input('vaccinationPerChicken');
         
         // Create a new VaccinationPlan with calculated totalVaccinationRequired
         VaccinationPlan::create([
             'vaccinationtypeID' => $request->input('vaccinationtypeID'),
             'vaccinationPerChicken' => $request->input('vaccinationPerChicken'),
-            'cageID' => $request->input('cageID'),
-            'totalVaccinationRequired' => $totalVaccinationRequired,
-            'date' => $request->input('date')
+            'ageThreshold' => $request->input('ageThreshold'),
+            // 'cageID' => $request->input('cageID'),
+            // 'totalVaccinationRequired' => $totalVaccinationRequired,
+            // 'date' => $request->input('date')
         ]);
 
         return redirect()->route('vaccinationplan.index')->with('success', 'Vaccination Plan added successfully.');
@@ -65,21 +68,25 @@ class VaccinationPlanController extends Controller
 
     public function update(Request $request) 
     {
+        Log::info('update method invoked', $request->all());
+        
         $request->validate([
-            'vaccinationplanID' => 'required|exists:vaccinationplan,vaccinationplanID',
+            // 'vaccinationplanID' => 'required|exists:vaccinationplan,vaccinationplanID',
             'vaccinationtypeID' => 'required|exists:vaccinationtype,vaccinationtypeID',
             'vaccinationPerChicken' => 'required|integer|min:1',
-            'cageID' => 'required|integer|exists:cage,cageID',
-            'date' => 'required|date',
+            'ageThreshold' => 'required',
+            
+            // 'cageID' => 'required|integer|exists:cage,cageID',
+            // 'date' => 'required|date',
         ]);
 
-        $plan = VaccinationPlan::findOrFail($request->input('vaccinationplanID'));
+        // $plan = VaccinationPlan::findOrFail($request->input('vaccinationplanID'));
 
-        // Retrieve the selected cage and count the chickens in it
-        $cage = Cage::withCount('chickens')->findOrFail($request->input('cageID'));
+        // // Retrieve the selected cage and count the chickens in it
+        // $cage = Cage::withCount('chickens')->findOrFail($request->input('cageID'));
 
         // Calculate the total vaccinations required
-        $totalVaccinationRequired = $cage->chickens_count * $request->input('vaccinationPerChicken');
+        // $totalVaccinationRequired = $cage->chickens_count * $request->input('vaccinationPerChicken');
 
         // Update the vaccination plan with the new values
 
@@ -88,9 +95,7 @@ class VaccinationPlanController extends Controller
         VaccinationPlan::where('vaccinationplanID',$id)->update([
             'vaccinationtypeID' => $request->input('vaccinationtypeID'),
             'vaccinationPerChicken' => $request->input('vaccinationPerChicken'),
-            'cageID' => $request->input('cageID'),
-            'totalVaccinationRequired' => $totalVaccinationRequired,
-            'date' => $request->input('date')
+            'ageThreshold' => $request->input('ageThreshold'),
         ]);
 
         return redirect()->route('vaccinationplan.index')->with('success', 'Vaccination Plan updated successfully.');

@@ -22,9 +22,7 @@
                         <th>Plan ID</th>
                         <th>Vaccination Type</th>
                         <th>Vaccination per Chicken</th>
-                        <th>Cage</th>
-                        <th>Total Vaccinations Required</th>
-                        <th>Actions</th>
+                        <th>Age(In Days)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -33,8 +31,7 @@
                         <td>{{ $plan->vaccinationplanID }}</td>
                         <td>{{ $plan->vaccinationtype->vaccineName ?? 'N/A' }}</td>
                         <td>{{ $plan->vaccinationPerChicken }}</td>
-                        <td>{{ $plan->cage->name ?? 'N/A' }}</td>
-                        <td>{{ $plan->totalVaccinationRequired }}</td>
+                        <td>{{ $plan->ageThreshold }}</td>
                         <td>
                             <a href="{{ route('vaccinationplan.edit', $plan->vaccinationplanID) }}"
                                 class="btn btn-primary btn-sm">Edit</a>

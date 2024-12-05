@@ -29,6 +29,11 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="ageThreshold">Age Thres Hold</label>
+                    <input type="number" name="ageThreshold" class="form-control" id="ageThreshold" min="1" required>
+                </div>
+
+                {{-- <div class="form-group">
                     <label for="cageID">Cage</label>
                     <select name="cageID" class="form-control" id="cageID" required>
                         @foreach($cages as $cage)
@@ -40,7 +45,7 @@
                 <div class="form-group">
                     <label for="date">Select Date:</label>
                     <input type="date" id="date" name="date" class="form-control" required>
-                </div>
+                </div> --}}
 
 
                 <button type="submit" class="btn btn-success float-right">Add Vaccination Plan</button>

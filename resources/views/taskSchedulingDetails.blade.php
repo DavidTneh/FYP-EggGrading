@@ -17,6 +17,35 @@
                     <p class="card-text"><strong>Task Description:</strong> {{ $taskScheduling->taskDescription }}</p>
                     <p class="card-text"><strong>Status:</strong> {{ $taskScheduling->status }}</p>
 
+                    <p class="card-text"><strong>Task Duration:</strong></p>
+                    @if ($cageSchedules->isNotEmpty())
+                    <ul>
+                        @foreach ($cageSchedules as $cageSchedule)
+                        <li>
+                            <strong>Cage:</strong> {{ $cageSchedule->cageName }}<br>
+                            <!-- Use cageName instead of name -->
+                            <strong>Start Date:</strong> {{ $cageSchedule->start_date }}<br>
+                            <strong>End Date:</strong> {{ $cageSchedule->end_date }}
+                        </li>
+                        @endforeach
+                    </ul>
+                    @else
+                    <p class="text-muted">No cage schedules assigned.</p>
+                    @endif
+
+                    <hr>
+                    <!-- Assigned Employees -->
+                    <h4>Assigned Employees</h4>
+                    @if ($assignedEmployees->isNotEmpty())
+                    <ul>
+                        @foreach ($assignedEmployees as $employee)
+                        <li><strong>Name:</strong> {{ $employee->name }}</li>
+                        @endforeach
+                    </ul>
+                    @else
+                    <p class="text-muted">No employees assigned to this task.</p>
+                    @endif
+
                     <hr>
                     <h4>Plans Associated with the Task</h4>
 

@@ -57,13 +57,15 @@
                     @csrf
                     <div class="mb-3">
                         <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email"  value="john@example.com" required>
+                        {{-- value="john@example.com" --}}
+                        <input type="email" class="form-control" id="email" name="email"   required>
                             {{-- value="{{ old('email') }}" --}}
                     </div>
                     <div class="mb-3">
                         <label for="password" class="form-label">Password</label>
                         <div style="position:relative;">
-                            <input class="form-control" type="password" id="password" name="password" required value="password">
+                            {{-- value="password" --}}
+                            <input class="form-control" type="password" id="password" name="password" required >
                             <span class="toggle-password" onclick="togglePass()"
                                 style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer;">
                                 <i id="toggleIcon" class="fas fa-eye"></i>

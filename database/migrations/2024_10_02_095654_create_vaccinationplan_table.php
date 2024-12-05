@@ -13,10 +13,7 @@ return new class extends Migration
             $table->unsignedInteger('vaccinationtypeID'); // Foreign Key
             $table->foreign('vaccinationtypeID')->references('vaccinationtypeID')->on('vaccinationtype');
             $table->integer('vaccinationPerChicken');
-            $table->unsignedInteger('cageID'); // Foreign Key
-            $table->foreign('cageID')->references('cageID')->on('cage');
-            $table->integer('totalVaccinationRequired');
-            $table->date('date');
+            $table->integer('ageThreshold');
             $table->timestamps();
         });
     }

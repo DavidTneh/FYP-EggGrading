@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
             TaskSchedulingSeeder::class,
             CageScheduleSeeder::class,
             AssignedEmployeeSeeder::class,
+            VaccinationRecordsTableSeeder::class,
         ]);
     }
 }

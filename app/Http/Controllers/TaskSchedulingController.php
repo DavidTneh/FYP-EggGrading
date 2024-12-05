@@ -10,10 +10,13 @@ use App\Models\CullingPlan;
 use App\Models\FeedingPlan;
 use App\Models\CageSchedule;
 use Illuminate\Http\Request;
+use App\Models\TaskStatusLog;
 use App\Models\CollectionPlan;
 use App\Models\TaskScheduling;
 use App\Models\AssignedEmployee;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class TaskSchedulingController extends Controller
 {
@@ -47,11 +50,15 @@ class TaskSchedulingController extends Controller
             return User::find($assignedEmployee->userID);
         });
 
-        // Fetch cage schedules separately
+        // Fetch cage schedules with start_date and end_date
         $cageSchedules = CageSchedule::where('scheduleID', $scheduleID)
         ->get()
         ->map(function ($cageSchedule) {
-            return Cage::find($cageSchedule->cageID);
+            return (object) [
+                'cageName' => Cage::find($cageSchedule->cageID)->name ?? 'Unknown',
+                'start_date' => $cageSchedule->start_date,
+                'end_date' => $cageSchedule->end_date,
+            ];
         });
 
         return view('taskSchedulingDetails', compact(
@@ -63,6 +70,7 @@ class TaskSchedulingController extends Controller
             'cageSchedules'
         ));
     }
+
 
 
     // Show the form for creating a new task scheduling
@@ -77,7 +85,6 @@ class TaskSchedulingController extends Controller
         return view('addTaskScheduling', compact('collectionPlans', 'feedingPlans', 'cullingPlans', 'employees', 'cages'));
     }
 
-    // Store a new task scheduling
     public function store(Request $request)
     {
         $request->validate([
@@ -91,17 +98,24 @@ class TaskSchedulingController extends Controller
             'assignedEmployees.*' => 'exists:user,userID',
             'cageSchedules' => 'required|array',
             'cageSchedules.*' => 'exists:cage,cageID',
+            'start_date' => 'required|date|after_or_equal:today',
+            'end_date' => 'required|date|after_or_equal:start_date',
         ]);
 
         // Create the main task scheduling record
-        $taskScheduling = TaskScheduling::create($request->only([
-            'taskName',
-            'taskDescription',
-            'collectionPlanID',
-            'feedingPlanID',
-            'cullingPlanID',
-            'status'
-        ]));
+        $taskScheduling = TaskScheduling::create([
+            'taskName' => $request->input('taskName'),
+            'taskDescription' => $request->input('taskDescription'),
+            'collectionPlanID' => $request->input('collectionPlanID'),
+            'feedingPlanID' => $request->input('feedingPlanID'),
+            'cullingPlanID' => $request->input('cullingPlanID'),
+            'collectionStatus' => 'pending',
+            'feedingStatus' => 'pending',
+            'cullingStatus' => 'pending',
+            'status' => $request->input('status'),
+            'start_date' => $request->input('start_date'),
+            'end_date' => $request->input('end_date'),
+        ]);
 
         // Assign employees
         foreach ($request->input('assignedEmployees') as $userID) {
@@ -111,11 +125,19 @@ class TaskSchedulingController extends Controller
             ]);
         }
 
-        // Assign cages
+        // Assign cages and calculate culling_date
         foreach ($request->input('cageSchedules') as $cageID) {
+            $chickens = Chicken::where('cageID', $cageID)->get();
+            $cullingDates = $chickens->map(function ($chicken) use ($taskScheduling) {
+                return Carbon::parse($chicken->dob)->addWeeks($taskScheduling->cullingPlan->eliminateAgeThreshold);
+            });
+
             CageSchedule::create([
                 'scheduleID' => $taskScheduling->scheduleID,
                 'cageID' => $cageID,
+                'start_date' => $request->input('start_date'), // Assign start_date
+                'end_date' => $request->input('end_date'), // Assign end_date
+                'culling_date' => $cullingDates->max(), // Get the latest culling date for the cage
             ]);
         }
 
@@ -134,12 +156,22 @@ class TaskSchedulingController extends Controller
         $employees = User::all();
         $cages = Cage::all();
 
-        return view('updateTaskScheduling', compact('taskScheduling', 'collectionPlans', 'feedingPlans', 'cullingPlans', 'employees', 'cages'));
+        return view('updateTaskScheduling',
+                compact(
+                    'taskScheduling',
+                    'collectionPlans',
+                    'feedingPlans',
+                    'cullingPlans',
+                    'employees',
+                    'cages'
+                )
+            );
     }
 
-    // Update a task scheduling
     public function update(Request $request)
     {
+        $taskScheduling = TaskScheduling::findOrFail($request->input('scheduleID'));
+
         $request->validate([
             'scheduleID' => 'required|exists:taskscheduling,scheduleID',
             'taskName' => 'required|string|max:255',
@@ -152,9 +184,17 @@ class TaskSchedulingController extends Controller
             'assignedEmployees.*' => 'exists:user,userID',
             'cageSchedules' => 'required|array',
             'cageSchedules.*' => 'exists:cage,cageID',
+            'start_date' => [
+                'required',
+                'date',
+                'after_or_equal:' . date('Y-m-d'),
+            ],
+            'end_date' => [
+                'required',
+                'date',
+                'after_or_equal:start_date',
+            ],
         ]);
-
-        $taskScheduling = TaskScheduling::findOrFail($request->input('scheduleID'));
 
         // Update main task scheduling record
         $taskScheduling->update($request->only([
@@ -163,7 +203,7 @@ class TaskSchedulingController extends Controller
             'collectionPlanID',
             'feedingPlanID',
             'cullingPlanID',
-            'status'
+            'status',
         ]));
 
         // Update assigned employees
@@ -175,12 +215,11 @@ class TaskSchedulingController extends Controller
             ]);
         }
 
-        // Update assigned cages
-        CageSchedule::where('scheduleID', $taskScheduling->scheduleID)->delete();
-        foreach ($request->input('cageSchedules') as $cageID) {
-            CageSchedule::create([
-                'scheduleID' => $taskScheduling->scheduleID,
-                'cageID' => $cageID,
+        // Update assigned cages and their schedule dates
+        foreach ($taskScheduling->cageSchedules as $cageSchedule) {
+            $cageSchedule->update([
+                'start_date' => $request->input('start_date'),
+                'end_date' => $request->input('end_date'),
             ]);
         }
 
@@ -247,16 +286,54 @@ class TaskSchedulingController extends Controller
         return redirect()->route('task-schedulings.index')->with('success', 'Task Scheduling deleted successfully.');
     }
 
-    public function showCalendar()
+    // public function showCalendar()
+    // {
+    //     $startOfWeek = \Carbon\Carbon::now()->startOfWeek();
+    //     $endOfWeek = \Carbon\Carbon::now()->endOfWeek();
+
+
+    //     $tasks = DB::table('taskscheduling')
+    //     ->join('cageschedule', 'taskscheduling.scheduleID', '=', 'cageschedule.scheduleID')
+    //     ->join('cage', 'cageschedule.cageID', '=', 'cage.cageID')
+    //     ->leftJoin('assignedemployee', 'taskscheduling.scheduleID', '=', 'assignedemployee.scheduleID')
+    //     ->leftJoin('user', 'assignedemployee.userID', '=', 'user.userID')
+    //     ->leftJoin('collectionplan', 'taskscheduling.collectionplanID', '=', 'collectionplan.collectionplanID')
+    //     ->leftJoin('feedingplan', 'taskscheduling.feedingplanID', '=', 'feedingplan.feedingplanID')
+    //     ->leftJoin('cullingplan', 'taskscheduling.cullingplanID', '=', 'cullingplan.cullingplanID')
+    //     ->select(
+    //         'taskscheduling.taskName',
+    //         'taskscheduling.taskDescription',
+    //         'taskscheduling.status',
+    //         'cage.name as cageName',
+    //         'user.name as employeeName',
+    //         DB::raw('IFNULL(collectionplan.time, IFNULL(feedingplan.time, "N/A")) as taskTime'),
+    //         DB::raw('IFNULL(collectionplan.frequency, IFNULL(feedingplan.frequency, "N/A")) as taskFrequency'),
+    //         DB::raw('IFNULL(cullingplan.eliminateAgeThreshold, "N/A") as cullingCriteria'),
+    //         'cageschedule.created_at as scheduleDate'
+    //     )
+    //     ->whereBetween('cageschedule.created_at', [$startOfWeek, $endOfWeek])
+    //     ->orderBy('scheduleDate', 'asc')
+    //     ->get();
+
+
+    //     return view('calender', compact('tasks'));
+    // }
+
+    public function showCalendar(Request $request)
     {
-        $startOfWeek = \Carbon\Carbon::now()->startOfWeek();
-        $endOfWeek = \Carbon\Carbon::now()->endOfWeek();
+        $weekOffset = $request->input('week', 0);
+        $startOfWeek = Carbon::now()->startOfWeek()->addWeeks($weekOffset);
+        $endOfWeek = Carbon::now()->endOfWeek()->addWeeks($weekOffset);
 
-
+        // Fetch tasks
         $tasks = DB::table('taskscheduling')
         ->join('cageschedule', 'taskscheduling.scheduleID', '=', 'cageschedule.scheduleID')
         ->join('cage', 'cageschedule.cageID', '=', 'cage.cageID')
-        ->leftJoin('assignedemployee', 'taskscheduling.scheduleID', '=', 'assignedemployee.scheduleID')
+        ->leftJoin('assignedemployee',
+            'taskscheduling.scheduleID',
+            '=',
+            'assignedemployee.scheduleID'
+        )
         ->leftJoin('user', 'assignedemployee.userID', '=', 'user.userID')
         ->leftJoin('collectionplan', 'taskscheduling.collectionplanID', '=', 'collectionplan.collectionplanID')
         ->leftJoin('feedingplan', 'taskscheduling.feedingplanID', '=', 'feedingplan.feedingplanID')
@@ -267,19 +344,115 @@ class TaskSchedulingController extends Controller
             'taskscheduling.status',
             'cage.name as cageName',
             'user.name as employeeName',
-            DB::raw('IFNULL(collectionplan.time, IFNULL(feedingplan.time, "N/A")) as taskTime'),
-            DB::raw('IFNULL(collectionplan.frequency, IFNULL(feedingplan.frequency, "N/A")) as taskFrequency'),
-            DB::raw('IFNULL(cullingplan.eliminateAgeThreshold, "N/A") as cullingCriteria'),
-            'cageschedule.created_at as scheduleDate'
+            'cageschedule.start_date',
+            'cageschedule.culling_date',
+            'collectionplan.time as collectionTime',
+            'collectionplan.frequency as collectionFrequency',
+            'collectionplan.is_repeating as collectionRepeating',
+            'feedingplan.time as feedingTime',
+            'feedingplan.frequency as feedingFrequency',
+            'feedingplan.is_repeating as feedingRepeating',
+            'cageschedule.culling_date as cullingDate',
+            'taskscheduling.scheduleID'
         )
-        ->whereBetween('cageschedule.created_at', [$startOfWeek, $endOfWeek])
-        ->orderBy('scheduleDate', 'asc')
+        ->orderBy('cageschedule.start_date', 'asc')
         ->get();
 
+        // Normalize tasks
+        $normalizedTasks = [];
+        // Process tasks
+        foreach ($tasks as $task) {
+            $task = (object) $task; // Ensure the task is an object
 
-        return view('calender', compact('tasks'));
+            // Handle Collection Plan
+            if (!is_null($task->collectionTime)) {
+                $this->processRepeatingTask($normalizedTasks, $task, $startOfWeek, $endOfWeek, 'collection');
+            }
+
+            // Handle Feeding Plan
+            if (!is_null($task->feedingTime)) {
+                $this->processRepeatingTask($normalizedTasks, $task, $startOfWeek, $endOfWeek, 'feeding');
+            }
+
+            // Handle Culling Plan
+            if (!is_null($task->cullingDate)) {
+                $cullingTimeSlot = $task->cullingDate . ' 00:00:00';
+                $normalizedTasks[$cullingTimeSlot][] = (object) array_merge((array) $task, [
+                    'taskType' => 'Culling',
+                    'taskName' => 'Culling Plan',
+                    'taskDescription' => 'Scheduled culling task',
+                ]);
+            }
+        }
+
+
+        return view('calender', compact('normalizedTasks', 'startOfWeek', 'endOfWeek', 'weekOffset'));
     }
 
+    /**
+     * Process a repeating task and add it to the normalizedTasks array.
+     */
+    private function processRepeatingTask(&$normalizedTasks, $task, $startOfWeek, $endOfWeek, $type)
+    {
+        // Determine task details based on type
+        $frequency = $type === 'collection' ? $task->collectionFrequency : $task->feedingFrequency;
+        $time = $type === 'collection' ? $task->collectionTime : $task->feedingTime;
+        $isRepeating = $type === 'collection' ? $task->collectionRepeating : $task->feedingRepeating;
+
+        $startDate = Carbon::parse($task->start_date);
+        $currentDate = $startOfWeek->copy();
+
+        // Loop through the week to process tasks
+        while ($currentDate->lte($endOfWeek)) {
+            // Ensure the task is within the current week and due
+            if ($currentDate->gte($startDate) && $this->isTaskDue($currentDate, $frequency, $startDate, $isRepeating)) {
+                $timeSlot = $currentDate->format('Y-m-d') . ' ' . $time;
+
+                // Avoid adding duplicates by checking for existing entries
+                $alreadyExists = collect($normalizedTasks[$timeSlot] ?? [])->contains(function ($existingTask) use ($task, $type) {
+                    return $existingTask->scheduleID === $task->scheduleID && $existingTask->taskType === ucfirst($type);
+                });
+
+                if (!$alreadyExists) {
+                    $normalizedTasks[$timeSlot][] = (object) array_merge((array) $task, ['taskType' => ucfirst($type)]);
+                }
+            }
+
+            // Increment date based on task frequency
+            if ($frequency === 'Daily') {
+                $currentDate->addDay();
+            } elseif ($frequency === 'Weekly') {
+                $currentDate->addWeek();
+            } elseif ($frequency === 'Biweekly') {
+                $currentDate->addWeeks(2);
+            } elseif ($frequency === 'Monthly') {
+                $currentDate->addMonth();
+            } else {
+                break; // Stop processing for unknown frequency
+            }
+        }
+    }
+
+    private function isTaskDue(Carbon $currentDate, $frequency, Carbon $startDate, $isRepeating)
+    {
+        // If the task does not repeat and the start date has passed, skip it
+        if (!$isRepeating && $currentDate->gt($startDate)) {
+            return false;
+        }
+
+        switch (strtolower($frequency)) {
+            case 'daily':
+                return true; // Always due
+            case 'weekly':
+                return $currentDate->dayOfWeek === $startDate->dayOfWeek;
+            case 'biweekly':
+                return $currentDate->diffInWeeks($startDate) % 2 === 0 && $currentDate->dayOfWeek === $startDate->dayOfWeek;
+            case 'monthly':
+                return $currentDate->day === $startDate->day;
+            default:
+                return false; // Default: not due
+        }
+    }
 
     public function getCalendarData()
     {
@@ -330,5 +503,74 @@ class TaskSchedulingController extends Controller
 
         return response()->json($events);
     }
+
+    public function listAssignedTasks()
+    {
+        // Get the currently logged-in employee
+        $employeeID = Auth::id();
+
+        // Fetch tasks assigned to the employee
+        $assignedTasks = AssignedEmployee::where('userID', $employeeID)
+            ->join('taskScheduling', 'assignedemployee.scheduleID', '=', 'taskScheduling.scheduleID')
+            ->join('cageschedule', 'taskScheduling.scheduleID', '=', 'cageschedule.scheduleID')
+            ->join('cage', 'cageschedule.cageID', '=', 'cage.cageID')
+            ->select(
+                'taskScheduling.scheduleID',
+                'taskScheduling.taskName',
+                'taskScheduling.taskDescription',
+                'taskScheduling.status',
+                'cage.name as cageName',
+                'cageschedule.start_date',
+                'cageschedule.end_date'
+            )
+            ->get();
+
+        return view('taskStatusListing', compact('assignedTasks'));
+    }
+
+    public function showUpdateTaskStatusForm(Request $request)
+    {
+        $scheduleID = $request->input('scheduleID');
+
+        // Validate if the scheduleID exists and belongs to the current user
+        $employeeID = Auth::id();
+        $taskScheduling = AssignedEmployee::where('assignedemployee.userID', $employeeID)
+            ->where('assignedemployee.scheduleID', $scheduleID)
+            ->join('taskScheduling', 'assignedemployee.scheduleID', '=', 'taskScheduling.scheduleID')
+            ->select('taskScheduling.*')
+            ->firstOrFail(); // Use firstOrFail to fetch a single task or throw 404 if not found
+
+        
+        return view('taskStatusUpdateForm', compact('taskScheduling'));
+    }
+
+    public function updateTaskStatus(Request $request)
+    {
+        Log::info('updateTaskStatus method invoked', $request->all());
+        $request->validate([
+            'scheduleID' => 'required|exists:taskScheduling,scheduleID',
+            'log_date' => 'required|date',
+            'collectionStatus' => 'required|in:pending,in_progress,completed',
+            'feedingStatus' => 'required|in:pending,in_progress,completed',
+            'cullingStatus' => 'required|in:pending,in_progress,completed',
+        ]);
+
+        // Insert or update the task status log
+        TaskStatusLog::updateOrCreate(
+            [
+                'scheduleID' => $request->input('scheduleID'),
+                'log_date' => $request->input('log_date'),
+            ],
+            [
+                'collectionStatus' => $request->input('collectionStatus'),
+                'feedingStatus' => $request->input('feedingStatus'),
+                'cullingStatus' => $request->input('cullingStatus'),
+            ]
+        );
+
+        return redirect()->route('employee.listAssignedTasks')->with('success', 'Task status updated successfully.');
+    }
+
+
 
 }

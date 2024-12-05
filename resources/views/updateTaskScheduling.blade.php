@@ -98,6 +98,19 @@
             </select>
         </div>
 
+<div class="form-group">
+    <label for="start_date">Start Date</label>
+    <input type="date" class="form-control" id="start_date" name="start_date"
+        value="{{ $taskScheduling->cageSchedules->first()->start_date ?? '' }}" min="{{ date('Y-m-d') }}" required>
+</div>
+
+<div class="form-group">
+    <label for="end_date">End Date</label>
+    <input type="date" class="form-control" id="end_date" name="end_date"
+        value="{{ $taskScheduling->cageSchedules->first()->end_date ?? '' }}"
+        min="{{ $taskScheduling->cageSchedules->first()->start_date ?? date('Y-m-d') }}" required>
+</div>
+
         <div class="form-group">
             <label for="status">Status</label>
             <select class="form-control" id="status" name="status" required>
@@ -112,4 +125,23 @@
         <button type="submit" class="btn btn-primary">Update Task Scheduling</button>
     </form>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const startDateInput = document.getElementById("start_date");
+        const endDateInput = document.getElementById("end_date");
+
+        // Ensure the end date is always after or equal to the start date
+        startDateInput.addEventListener("change", function () {
+            endDateInput.min = startDateInput.value;
+        });
+
+        endDateInput.addEventListener("change", function () {
+            if (new Date(endDateInput.value) < new Date(startDateInput.value)) {
+                endDateInput.value = startDateInput.value;
+            }
+        });
+    });
+</script>
+
 @stop

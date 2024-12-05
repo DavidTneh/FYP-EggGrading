@@ -84,6 +84,17 @@
         </div>
 
         <div class="form-group">
+            <label for="start_date">Start Date</label>
+            <input type="date" class="form-control" id="start_date" name="start_date" min="{{ date('Y-m-d') }}"
+                required>
+        </div>
+
+        <div class="form-group">
+            <label for="end_date">End Date</label>
+            <input type="date" class="form-control" id="end_date" name="end_date" min="{{ date('Y-m-d') }}" required>
+        </div>
+
+        <div class="form-group">
             <label for="status">Status</label>
             <select class="form-control" id="status" name="status" required>
                 <option value="Pending">Pending</option>
@@ -95,4 +106,30 @@
         <button type="submit" class="btn btn-success">Create Task Scheduling</button>
     </form>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const startDateInput = document.getElementById("start_date");
+        const endDateInput = document.getElementById("end_date");
+
+        // Set minimum start date to today
+        const today = new Date().toISOString().split("T")[0];
+        startDateInput.setAttribute("min", today);
+
+        // Update the minimum end date when start date changes
+        startDateInput.addEventListener("change", function () {
+            const startDate = startDateInput.value;
+            endDateInput.setAttribute("min", startDate);
+        });
+
+        // Ensure end date is valid after editing
+        endDateInput.addEventListener("change", function () {
+            const endDate = endDateInput.value;
+            const startDate = startDateInput.value;
+            if (new Date(endDate) < new Date(startDate)) {
+                endDateInput.value = startDate;
+            }
+        });
+    });
+</script>
 @stop

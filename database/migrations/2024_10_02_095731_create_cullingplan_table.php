@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('cullingplan', function (Blueprint $table) {
             $table->increments('cullingplanID');
-            $table->integer('eliminateAgeThreshold')->comment('Threshold in weeks to determine culling date');
+            $table->integer('eliminateAgeThreshold')->comment('Threshold in days to determine culling date');
             $table->text('reasons')->comment('Reasons for culling');
             $table->string('healthStatus')->comment('Health status criteria for culling');
             $table->text('notes')->nullable()->comment('Additional notes');

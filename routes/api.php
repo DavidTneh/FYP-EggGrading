@@ -22,5 +22,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 
 Route::post('/gradeEggs', [EggGradingController::class, 'gradeEggs']);
+Route::post('/gradeLiveEgg', [EggGradingController::class, 'gradeLiveEgg']);
+
 
 Route::get('/api/get-calendar-data', [TaskSchedulingController::class, 'getCalendarData']);

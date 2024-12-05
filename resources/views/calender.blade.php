@@ -109,38 +109,138 @@
 
 </html> --}}
 
-<div class="container">
-    <h2>Week: {{ \Carbon\Carbon::now()->startOfWeek()->format('M d') }} - {{
-        \Carbon\Carbon::now()->endOfWeek()->format('M d') }}</h2>
+{{-- <div class="container">
+    <h1>Task Calendar</h1>
+    <p>
+        Showing tasks for the week of
+        <strong>{{ $startOfWeek->format('M d, Y') }}</strong> to
+        <strong>{{ $endOfWeek->format('M d, Y') }}</strong>.
+    </p>
+
+    <div class="mb-3">
+        <!-- Navigation buttons for previous and next weeks -->
+        <a href="{{ route('calendar', ['week' => $weekOffset - 1]) }}" class="btn btn-primary">Previous Week</a>
+        <a href="{{ route('calendar', ['week' => $weekOffset + 1]) }}" class="btn btn-primary">Next Week</a>
+        <a href="{{ route('calendar', ['week' => 0]) }}" class="btn btn-secondary">Current Week</a>
+    </div>
+
+    <!-- Task Table -->
     <table class="table table-striped">
         <thead>
             <tr>
-                <th>Date</th>
-                <th>Time</th>
                 <th>Task Name</th>
                 <th>Description</th>
-                <th>Frequency</th>
-                <th>Cage</th>
-                <th>Employee(s)</th>
                 <th>Status</th>
+                <th>Cage</th>
+                <th>Assigned Employee</th>
+                <th>Task Time</th>
+                <th>Task Frequency</th>
+                <th>Start Date</th>
+                <th>Culling Date</th>
             </tr>
         </thead>
         <tbody>
-            @foreach ($tasks as $task)
+            @forelse($tasks as $task)
             <tr>
-                <td>{{ \Carbon\Carbon::parse($task->scheduleDate)->format('Y-m-d') }}</td>
-                <td>{{ $task->taskTime }}</td>
                 <td>{{ $task->taskName }}</td>
                 <td>{{ $task->taskDescription }}</td>
-                <td>{{ $task->taskFrequency }}</td>
+                <td>{{ $task->status }}</td>
                 <td>{{ $task->cageName }}</td>
                 <td>{{ $task->employeeName ?? 'Unassigned' }}</td>
-                <td>{{ ucfirst($task->status) }}</td>
+                <td>{{ $task->taskTime }}</td>
+                <td>{{ $task->taskFrequency }}</td>
+                <td>{{ $task->start_date }}</td>
+                <td>{{ $task->culling_date }}</td>
             </tr>
-            @endforeach
+            @empty
+            <tr>
+                <td colspan="9" class="text-center">No tasks scheduled for this week.</td>
+            </tr>
+            @endforelse
         </tbody>
     </table>
-</div>
+</div> --}}
+
+    <div class="container">
+        <h2 class="text-center">Weekly Schedule</h2>
+        <div class="d-flex justify-content-between mb-3">
+            <a href="{{ route('task-schedulings.calendar', ['week' => $weekOffset - 1]) }}" class="btn btn-primary">Previous Week</a>
+            <a href="{{ route('task-schedulings.calendar', ['week' => 0]) }}" class="btn btn-secondary">Current Week</a>
+            <a href="{{ route('task-schedulings.calendar', ['week' => $weekOffset + 1]) }}" class="btn btn-primary">Next Week</a>
+        </div>
+
+        <div class="d-flex justify-content-between mb-3">
+            <span>Week of {{ $startOfWeek->format('M d, Y') }} to {{ $endOfWeek->format('M d, Y') }}</span>
+        </div>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    @foreach (range(0, 6) as $day)
+                    <th>{{ $startOfWeek->copy()->addDays($day)->format('l, d M Y') }}</th>
+                    @endforeach
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (range(0, 23) as $hour)
+                <tr>
+                    <td>{{ str_pad($hour, 2, '0', STR_PAD_LEFT) }}:00</td>
+                    @foreach (range(0, 6) as $day)
+                    @php
+                    $currentDay = $startOfWeek->copy()->addDays($day);
+                    $timeSlot = $currentDay->format('Y-m-d') . ' ' . str_pad($hour, 2, '0', STR_PAD_LEFT) . ':00:00';
+                    @endphp
+                    <td>
+                        @if (isset($normalizedTasks[$timeSlot]))
+                        @foreach ($normalizedTasks[$timeSlot] as $task)
+                        <div class="task-item {{ strtolower($task->taskType) }}">
+                            <span class="badge">{{ ucfirst($task->taskType) }}</span>
+                            <strong>{{ $task->taskName }}</strong><br>
+                            <small>
+                                {{ $task->taskDescription }}<br>
+                                Cage: {{ $task->cageName }}<br>
+                                Employee: {{ $task->employeeName ?? 'Unassigned' }}
+                            </small>
+                        </div>
+                        @endforeach
+                        @endif
+                    </td>
+                    @endforeach
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+    
+    <style>
+        .task-item {
+        margin-bottom: 5px;
+        padding: 10px;
+        border-radius: 5px;
+        color: #fff;
+        font-size: 14px;
+        font-weight: bold;
+        }
+        
+        .task-item.collection {
+        background-color: #007bff; /* Blue for Collection */
+        }
+        
+        .task-item.feeding {
+        background-color: #28a745; /* Green for Feeding */
+        }
+        
+        .task-item.culling {
+        background-color: #ffc107; /* Yellow for Culling */
+        color: #000; /* Black text for contrast */
+        }
+        
+        .badge {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+        }
+    </style>
 
 @stop  
 

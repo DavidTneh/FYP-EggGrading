@@ -9,15 +9,18 @@ return new class extends Migration
     public function up()
     {
         Schema::create('taskScheduling', function (Blueprint $table) {
-            $table->increments('scheduleID');
+            $table->increments('scheduleID'); // Primary key using increments
             $table->string('taskName');
             $table->text('taskDescription');
-            $table->unsignedInteger('collectionplanID');
-            $table->foreign('collectionplanID')->references('collectionplanID')->on('collectionplan');
-            $table->unsignedInteger('feedingplanID');
-            $table->foreign('feedingplanID')->references('feedingplanID')->on('feedingplan');
-            $table->unsignedInteger('cullingplanID');
-            $table->foreign('cullingplanID')->references('cullingplanID')->on('cullingplan');
+            $table->unsignedInteger('collectionplanID'); // Foreign key referencing collectionplan
+            $table->foreign('collectionplanID')->references('collectionplanID')->on('collectionplan')->onDelete('cascade');
+            $table->unsignedInteger('feedingplanID'); // Foreign key referencing feedingplan
+            $table->foreign('feedingplanID')->references('feedingplanID')->on('feedingplan')->onDelete('cascade');
+            $table->unsignedInteger('cullingplanID'); // Foreign key referencing cullingplan
+            $table->foreign('cullingplanID')->references('cullingplanID')->on('cullingplan')->onDelete('cascade');
+            $table->string('collectionStatus')->default('pending'); // Default status: 'pending'
+            $table->string('feedingStatus')->default('pending'); // Default status: 'pending'
+            $table->string('cullingStatus')->default('pending'); // Default status: 'pending'
             $table->string('status');
             $table->timestamps();
         });
@@ -27,5 +30,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('taskScheduling');
     }
-
 };

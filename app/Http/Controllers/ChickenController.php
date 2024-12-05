@@ -2,26 +2,57 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Chicken;
 use App\Models\Cage;
-use App\Models\ChickenBreeds;
+use App\Models\Chicken;
+use BaconQrCode\Writer;
 use Illuminate\Http\Request;
+use App\Models\ChickenBreeds;
+use Illuminate\Support\Facades\Log;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\Image\ImagickImageBackEnd;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+
 
 class ChickenController extends Controller
 {
     // Display the list of chickens grouped by cage and breed
     public function index()
     {
-        // Group chickens by cageID and breedID, then count the quantity in each group
         $chickensGrouped = Chicken::with(['breed', 'cage'])
-            ->selectRaw('cageID, breedID, COUNT(*) as quantity')
-            ->groupBy('cageID', 'breedID')
-            ->get();
+        ->selectRaw('cageID, breedID, COUNT(*) as quantity')
+        ->groupBy('cageID', 'breedID')
+        ->get();
 
         return view('chickenManagement', compact('chickensGrouped'));
     }
 
-    
+    public function printQR(Request $request)
+    {
+        $chickenID = $request->input('chickenID');
+        $chicken = Chicken::findOrFail($chickenID);
+
+        $qrCodeData = json_encode([
+            'chickenID' => $chicken->chickenID,
+            'dob' => $chicken->dob,
+            'cageID' => $chicken->cageID,
+            'breedID' => $chicken->breedID,
+        ]);
+
+        // Generate QR code using BaconQrCode with SVG backend
+        $renderer = new ImageRenderer(
+            new RendererStyle(300), // 300x300 px QR code
+            new SvgImageBackEnd()   // SVG backend
+        );
+        $writer = new Writer($renderer);
+
+        $qrCodeSvg = $writer->writeString($qrCodeData);
+
+        // Return the SVG QR code to the browser
+        return response($qrCodeSvg)
+            ->header('Content-Type', 'image/svg+xml')
+            ->header('Content-Disposition', 'inline; filename="chicken_qr_code.svg"');
+    }
 
     // Show the form to create a new chicken
     public function create()

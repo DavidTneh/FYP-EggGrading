@@ -35,6 +35,11 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="ageThreshold">Age Thres Hold</label>
+                    <input type="number" name="ageThreshold" class="form-control" id="ageThreshold" min="1" value="{{ $plan->ageThreshold }}" required>
+                </div>
+
+                {{-- <div class="form-group">
                     <label for="cageID">Cage</label>
                     <select name="cageID" class="form-control" id="cageID" required>
                         @foreach($cages as $cage)
@@ -43,12 +48,12 @@
                         </option>
                         @endforeach
                     </select>
-                </div>
+                </div> --}}
 
-                <div class="form-group">
+                {{-- <div class="form-group">
                     <label for="date">Date</label>
                     <input type="date" id="date" name="date" class="form-control" value="{{ $plan->date }}" required>
-                </div>
+                </div> --}}
 
                 <button type="submit" class="btn btn-success float-right">Update Vaccination Plan</button>
             </form>

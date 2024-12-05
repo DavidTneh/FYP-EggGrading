@@ -64,7 +64,7 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => $request->password,
             'status' => true,  // Add your status condition if necessary
-            'roleID' => 1,     // Add your role condition if necessary
+                // Add your role condition if necessary
         ];
 
         // Attempt to log in using the default 'web' guard

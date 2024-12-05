@@ -23,9 +23,6 @@
                 <td>
                     <a href="{{ route('chickens.showGrouped', ['cageID' => $group->cageID, 'breedID' => $group->breedID]) }}" class="btn btn-info btn-sm">View</a>
                     
-                    <!-- Edit Button -->
-                    {{-- <a href="{{ route( 'chickens.editGroup', ['cageID' => $group->cageID, 'breedID' => $group->breedID]) }}"
-                        class="btn btn-primary btn-sm">Edit Group</a> --}}
                         
                     <form action="{{ route('chickens.editGroup') }}" method="POST" style="display:inline;">
                                             @csrf

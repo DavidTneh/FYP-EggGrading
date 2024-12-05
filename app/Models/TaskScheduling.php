@@ -14,6 +14,9 @@ class TaskScheduling extends Model
         'collectionPlanID',
         'feedingPlanID',
         'cullingPlanID',
+        'collectionStatus', // New field
+        'feedingStatus',    // New field
+        'cullingStatus',    // New field
         'status',
     ];
 
