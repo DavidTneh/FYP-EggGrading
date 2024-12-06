@@ -245,7 +245,7 @@ class VaccinationRecordsController extends Controller
 
 
     public function deleteGroup(Request $request)
-    {
+    { 
         $request->validate([
             'cageID' => 'required|exists:cage,cageID',
             'breedID' => 'required|exists:chickenbreeds,breedID',
@@ -258,7 +258,7 @@ class VaccinationRecordsController extends Controller
 
         // Loop through chickens and delete related vaccination records
         foreach ($chickens as $chicken) {
-            VaccinationRecords::where('chickenID', $chicken->chickenID)->delete();
+            VaccinationRecords::where('chickenID', $chicken->chickenID)->where('date_administered', $request->input('date_administered'))->delete();
         }
 
         return redirect()->route('vaccination_records.index')->with('success', 'Vaccination records deleted successfully for the group.');
@@ -283,5 +283,71 @@ class VaccinationRecordsController extends Controller
 
         return redirect()->route('vaccination_records.index')->with('success', 'Vaccination group deleted successfully.');
     }
+
+    public function listVaccinationRecords(Request $request)
+    {
+        // Retrieve grouped data by cageID, breedID, vaccinationplanID, and date_administered
+        $vaccinationRecordsGrouped = Chicken::with([
+            'breed',
+            'cage',
+            'vaccinationRecords.vaccinationplan.vaccinationType',
+            'vaccinationRecords.user',
+        ])
+        ->get()
+            ->flatMap(function ($chicken) {
+                return $chicken->vaccinationRecords->map(function ($record) use ($chicken) {
+                    return [
+                        'cageID' => $chicken->cageID,
+                        'breedID' => $chicken->breedID,
+                        'vaccinationplanID' => $record->vaccinationplanID,
+                        'date_administered' => $record->date_administered,
+                        'cageName' => $chicken->cage->name ?? 'Unknown Cage',
+                        'breedName' => $chicken->breed->name ?? 'Unknown Breed',
+                        'vaccinationPlanName' => $record->vaccinationplan->vaccinationType->vaccineName ?? 'Unknown Plan',
+                        'totalRecords' => 1, // Initialize to 1 for grouping later
+                        'status' => $record->status,
+                    ];
+                });
+            })
+            ->groupBy(function ($item) {
+                return $item['cageID'] . '-' . $item['breedID'] . '-' . $item['vaccinationplanID'] . '-' . $item['date_administered'];
+            });
+
+        return view('vaccinationRecords.list', compact('vaccinationRecordsGrouped'));
+    }
+
+    public function updateSelectedVaccinationRecords(Request $request)
+    {
+        // Validate the request
+        $request->validate([
+            'selected_groups' => 'required|array', // Expect an array of selected groups
+            'selected_groups.*.cageID' => 'required|exists:cage,cageID',
+            'selected_groups.*.breedID' => 'required|exists:chickenbreeds,breedID',
+            'selected_groups.*.vaccinationplanID' => 'required|exists:vaccinationplan,vaccinationplanID',
+            'selected_groups.*.date_administered' => 'required|date',
+            'status' => 'required|in:pending,completed',
+            'notes' => 'nullable|string',
+        ]);
+
+        foreach ($request->input('selected_groups') as $group) {
+            // Retrieve chicken IDs based on the conditions
+            $chickens = Chicken::where('cageID', $group['cageID'])
+                ->where('breedID', $group['breedID'])
+                ->pluck('chickenID');
+
+            // Update vaccination records matching the conditions
+            VaccinationRecords::whereIn('chickenID', $chickens)
+                ->where('vaccinationplanID', $group['vaccinationplanID'])
+                ->where('date_administered', $group['date_administered'])
+                ->update([
+                    'status' => $request->input('status'),
+                    'notes' => $request->input('notes'),
+                ]);
+        }
+
+        return redirect()->route('vaccination.records.list')->with('success', 'Vaccination records updated successfully.');
+    }
+
+
 
 }

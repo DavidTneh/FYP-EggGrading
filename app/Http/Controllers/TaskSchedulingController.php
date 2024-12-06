@@ -10,10 +10,13 @@ use App\Models\CullingPlan;
 use App\Models\FeedingPlan;
 use App\Models\CageSchedule;
 use Illuminate\Http\Request;
+use App\Models\ChickenBreeds;
 use App\Models\TaskStatusLog;
 use App\Models\CollectionPlan;
 use App\Models\TaskScheduling;
+use App\Models\VaccinationPlan;
 use App\Models\AssignedEmployee;
+use App\Models\VaccinationRecords;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -511,22 +514,35 @@ class TaskSchedulingController extends Controller
 
         // Fetch tasks assigned to the employee
         $assignedTasks = AssignedEmployee::where('userID', $employeeID)
-            ->join('taskScheduling', 'assignedemployee.scheduleID', '=', 'taskScheduling.scheduleID')
-            ->join('cageschedule', 'taskScheduling.scheduleID', '=', 'cageschedule.scheduleID')
-            ->join('cage', 'cageschedule.cageID', '=', 'cage.cageID')
-            ->select(
-                'taskScheduling.scheduleID',
-                'taskScheduling.taskName',
-                'taskScheduling.taskDescription',
-                'taskScheduling.status',
-                'cage.name as cageName',
-                'cageschedule.start_date',
-                'cageschedule.end_date'
-            )
-            ->get();
+        ->join('taskScheduling', 'assignedemployee.scheduleID', '=', 'taskScheduling.scheduleID')
+        ->join('cageschedule', 'taskScheduling.scheduleID', '=', 'cageschedule.scheduleID')
+        ->join('cage', 'cageschedule.cageID', '=', 'cage.cageID')
+        ->select(
+            'taskScheduling.scheduleID',
+            'taskScheduling.taskName',
+            'taskScheduling.taskDescription',
+            'taskScheduling.status',
+            'cage.name as cageName',
+            'cageschedule.start_date',
+            'cageschedule.end_date'
+        )
+        ->get();
 
-        return view('taskStatusListing', compact('assignedTasks'));
+        // Fetch vaccination records assigned to the employee
+        $assignedVaccinationRecords = VaccinationRecords::with([
+            'chicken.breed',
+            'chicken.cage',
+            'vaccinationplan.vaccinationType',
+        ])
+        ->where('administered_by', $employeeID) // Filter by the logged-in user
+        ->get();
+
+        return view('taskStatusListing',
+            compact('assignedTasks', 'assignedVaccinationRecords')
+        );
     }
+
+
 
     public function showUpdateTaskStatusForm(Request $request)
     {
@@ -570,6 +586,73 @@ class TaskSchedulingController extends Controller
 
         return redirect()->route('employee.listAssignedTasks')->with('success', 'Task status updated successfully.');
     }
+
+    public function showUpdateVaccinationStatusForm(Request $request)
+    {
+        $request->validate([
+            'cageID' => 'required|exists:cage,cageID',
+            'breedID' => 'required|exists:chickenbreeds,breedID',
+            'vaccinationplanID' => 'required|exists:vaccinationplan,vaccinationplanID',
+            'date_administered' => 'required|date',
+        ]);
+
+        // Retrieve vaccination records matching the group criteria
+        $vaccinationRecords = VaccinationRecords::with([
+            'chicken.breed',
+            'chicken.cage',
+            'vaccinationplan.vaccinationType',
+        ])
+        ->whereHas('chicken', function ($query) use ($request) {
+            $query->where('cageID', $request->input('cageID'))
+            ->where('breedID', $request->input('breedID'));
+        })
+        ->where('vaccinationplanID', $request->input('vaccinationplanID'))
+        ->where('date_administered', $request->input('date_administered'))
+        ->get();
+
+        // Ensure records exist for the group
+        if ($vaccinationRecords->isEmpty()) {
+            return redirect()->back()->withErrors(['error' => 'No vaccination records found for the selected criteria.']);
+        }
+
+        // Retrieve related information for reference
+        $cage = Cage::findOrFail($request->input('cageID'));
+        $breed = ChickenBreeds::findOrFail($request->input('breedID'));
+        $vaccinationPlan = VaccinationPlan::findOrFail($request->input('vaccinationplanID'));
+
+        return view('updateVaccinationRecordStatus', compact('vaccinationRecords', 'cage', 'breed', 'vaccinationPlan'));
+    }
+
+
+
+    public function updateVaccinationGroupStatus(Request $request)
+    {
+        $request->validate([
+            'cageID' => 'required|exists:cage,cageID',
+            'breedID' => 'required|exists:chickenbreeds,breedID',
+            'vaccinationplanID' => 'required|exists:vaccinationplan,vaccinationplanID',
+            'date_administered' => 'required|date',
+            'status' => 'required|in:pending,completed,skipped',
+            'notes' => 'nullable|string',
+        ]);
+
+        // Update the vaccination records for the group
+        VaccinationRecords::whereHas('chicken', function ($query) use ($request) {
+            $query->where('cageID', $request->input('cageID'))
+                ->where('breedID', $request->input('breedID'));
+        })
+            ->where('vaccinationplanID', $request->input('vaccinationplanID'))
+            ->where('date_administered', $request->input('date_administered'))
+            ->update([
+                'status' => $request->input('status'),
+                'notes' => $request->input('notes'),
+            ]);
+
+        return redirect()->route('employee.listAssignedTasks')
+        ->with('success', 'Vaccination records for the group updated successfully.');
+    }
+
+
 
 
 

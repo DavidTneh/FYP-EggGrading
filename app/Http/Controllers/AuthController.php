@@ -104,53 +104,87 @@ class AuthController extends Controller
         }
     }
 
+    // public function register(Request $request)
+    // {
+    //     // Validate the request data
+    //     $validator = Validator::make($request->all(), [
+    //         'name' => 'required|string|max:255|unique:user',
+    //         'email' => 'required|string|email|max:255|unique:user',
+    //         'password' => 'required|string|min:8|confirmed',
+    //         'phoneNo' => 'required',
+    //         'dob' => 'required',
+    //         'address' => 'required',
+    //         'confirm_password' => 'confirm_password',
+    //         'terms' => 'checked'
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         $errors = $validator->errors();
+    //         $firstError = $errors->first();
+    //         return back()->with('validation_error', $firstError);
+
+    //     }
+
+    //     $validatedData = $validator->validated();
+
+    //     // Directly create the user without using a repository
+    //     $user = User::create([
+    //         'name' => $validatedData['name'],
+    //         'email' => $validatedData['email'],
+    //         'phoneNo' => $validatedData['phoneNo'],
+    //         'dob' => $validatedData['dob'],
+    //         'password' => Hash::make($validatedData['password']),
+    //         'status' => 1,  // Set default status to active
+    //         'roleID' => 2,   // Set default role ID
+    //     ]);
+
+    //     // Generate a token for the user
+    //     $token = $user->createToken('API Token', ['*'], now()->addWeek())->plainTextToken;
+
+    //     $success['token'] = $token;
+    //     $success['name'] = $user->name;
+    //     $success['user_id'] = $user->userID;
+
+    //     // Redirect to the '/admin' route
+    //     return redirect()->route('admin')->with('success', 'Registration successful!');
+    // }
+
+    public function showRegistrationForm()
+    {
+        return view('register'); // Ensure this matches your blade file
+    }
+
+    // Handle registration logic
     public function register(Request $request)
     {
-        // Validate the request data
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255|unique:users',
-            'email' => 'required|string|email|max:255|unique:users',
+            'name' => 'required|string|max:255|unique:user,name',
+            'email' => 'required|string|email|max:255|unique:user,email',
             'password' => 'required|string|min:8|confirmed',
-            'phoneNo' => 'required',
-            'dob' => 'required',
-            'address' => 'required',
-            'confirm_password' => 'confirm_password',
-            'terms' => 'checked'
+            'phoneNo' => 'required|string|max:20',
+            'dob' => 'required|date',
+            'address' => 'required|string|max:255',
+            'terms' => 'accepted',
         ]);
 
         if ($validator->fails()) {
-            $errors = $validator->errors();
-            $firstError = $errors->first();
-            return back()->with('validation_error', $firstError);
-
+            return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        $validatedData = $validator->validated();
-
-        // Directly create the user without using a repository
-        $user = User::create([
-            'name' => $validatedData['name'],
-            'email' => $validatedData['email'],
-            'phoneNo' => $validatedData['phoneNo'],
-            'dob' => $validatedData['dob'],
-            'password' => Hash::make($validatedData['password']),
-            'status' => 1,  // Set default status to active
-            'roleID' => 2,   // Set default role ID
+        // Create the user
+        User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'phoneNo' => $request->phoneNo,
+            'dob' => $request->dob,
+            'address' => $request->address,
+            'roleID' => 2, // Default role for a new user
+            'status' => 1, // Active status
         ]);
 
-        // Generate a token for the user
-        $token = $user->createToken('API Token', ['*'], now()->addWeek())->plainTextToken;
-
-        $success['token'] = $token;
-        $success['name'] = $user->name;
-        $success['user_id'] = $user->userID;
-
-        // Redirect to the '/admin' route
-        return redirect()->route('admin')->with('success', 'Registration successful!');
+        return redirect()->route('admin.login')->with('success', 'Registration successful! Please login.');
     }
-
-    
-
 
     public function logout(Request $request)
     {
@@ -169,10 +203,15 @@ class AuthController extends Controller
         return redirect()->route('admin.login');  // Use the named route 'admin.login'
     }
 
+    public function showEmailResetForm()
+    {
+        return view('forgetPasswordEmail');
+    }
 
+        
     public function showForgotPasswordForm()
     {
-        return view('admin.forgot-password');
+        return view('forgetPasswordReset');
     }
 
     public function sendResetLink(Request $request)
@@ -185,7 +224,7 @@ class AuthController extends Controller
             return back()->withErrors(['email' => 'A password reset link has already been sent to this email. Please check your inbox.']);
         }
 
-        $user = User::where('email', $request->email)->where('roleID', 1)->where('status', true)->first();
+        $user = User::where('email', $request->email)->where('status', true)->first();
 
         if ($user) {
             $token = Str::random(60);
@@ -218,7 +257,7 @@ class AuthController extends Controller
             abort(403, 'This password reset token has expired.');
         }
 
-        return view('admin.reset-password', compact('token'));
+        return view('forgetPasswordReset', compact('token'));
     }
 
     public function resetPassword(Request $request, $token)
@@ -237,7 +276,7 @@ class AuthController extends Controller
             abort(403, 'This password reset token has expired.');
         }
 
-        $user = User::where('email', $tokenDetails->email)->where('roleID', 1)->where('status', true)->first();
+        $user = User::where('email', $tokenDetails->email)->where('status', true)->first();
 
         if ($user) {
             $user->password = Hash::make($request->password);
@@ -250,6 +289,45 @@ class AuthController extends Controller
 
         return back()->withErrors(['email' => 'User not found.']);
     }
+
+    public function changePassword(Request $request)
+    {
+
+        $errors = [];
+        
+        $request->validate([
+            'currentPassword' => 'required',
+            'newPassword' => 'required|min:8|confirmed', // Ensure password and confirm password match
+        ]);
+
+        // Retrieve the authenticated user
+        $userID = auth()->id();
+        $user = User::findOrFail($userID);
+
+        if (!Hash::check($request->currentPassword, $user->password)) {
+            $errors['currentPassword'] = 'The current password is incorrect.';
+        }
+
+        // Additional check for password confirmation (though the validation rule handles this)
+        if ($request->newPassword !== $request->newPassword_confirmation) {
+            $errors['newPassword'] = 'The new password and confirmation password do not match.';
+        }
+
+        // If there are errors, redirect back with all errors and flash messages
+        if (!empty($errors)) {
+            return redirect()->back()
+                ->withErrors($errors)
+                ->with('error', 'Password change failed. Please correct the errors below.');
+        
+        }
+        // Update the password
+        $user->password = Hash::make($request->newPassword);
+        $user->save();
+
+        return redirect()->back()->with('success', 'Password updated successfully.');
+    }
+
+
 
 
     // protected function logUserActivity($userId, $action, $request, $loginStatus)
@@ -283,6 +361,7 @@ class AuthController extends Controller
     public function showProfile()
     {
         $user = auth()->user(); // Assuming you're using Laravel's built-in auth
+
         return view('profile', compact('user'));
     }
 
@@ -309,6 +388,34 @@ class AuthController extends Controller
 
         return redirect()->route('profile.show')->with('success', 'Profile updated successfully.');
     }
+
+    public function updateProfilePicture(Request $request)
+    {
+        // Retrieve the currently authenticated user
+        $user = User::find(Auth::id()); // Explicitly fetch the user by ID
+
+        // Validate the uploaded image
+        $request->validate([
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Validate the `image` field
+        ]);
+
+        // Handle file upload
+        if ($request->hasFile('image')) {
+            // Delete the old profile picture if it exists
+            if ($user->image && file_exists(storage_path('app/public/' . $user->image))) {
+                unlink(storage_path('app/public/' . $user->image));
+            }
+
+            // Save the new profile picture
+            $image = $request->file('image');
+            $path = $image->store('uploads/profile_pictures', 'public'); // Save to the 'public' disk
+            $user->image = $path; // Save only the relative path (e.g., uploads/profile_pictures/filename)
+            $user->save(); // Save the user model
+        }
+
+        return redirect()->route('profile.show')->with('success', 'Profile picture updated successfully.');
+    }
+
 
     public function updatePassword(Request $request)
     {

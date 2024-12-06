@@ -22,6 +22,7 @@ class User extends Authenticatable
         'phoneNo',
         'address',
         'status',
+        'image',
     ];
 
     // Hide sensitive fields

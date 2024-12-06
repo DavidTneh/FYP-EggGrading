@@ -76,10 +76,18 @@
                         style="background-color: #007bff; border: none;">Login</button>
                 </form>
                 <div class="mt-3 text-center">
-                    <p class="mb-0">Don't have an account? <a href="{{route('admin.admin.register')}}" class="text-primary-custom">Register</a></p>
+                    <p class="mb-0">Don't have an account? <a href="{{route('admin.register')}}" class="text-primary-custom">Register</a></p>
                 </div>
                 <div class="mt-2 text-center">
-                    <a href="{{ route('admin.forgot_password') }}" class="text-primary-custom">Forgot your password?</a>
+                    <form action="{{ route('admin.sendEmail') }}" method="GET">
+                        @csrf
+                        <button type="submit" class="btn btn-link text-primary-custom"
+                            style="text-decoration: none; padding: 0; border: none; background: none;">
+                            Forgot your password?
+                        </button>
+                    </form>
+
+                    {{-- <a href="{{ route('admin.sendResetLink') }}" class="text-primary-custom">Forgot your password?</a> --}}
                 </div>
             </div>
         </div>

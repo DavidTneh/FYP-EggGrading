@@ -13,18 +13,20 @@
         <div class="col-md-4 mt-4">
             <div class="card">
                 <div class="card-body text-center">
-                    <div class="profile-user-img img-circle mx-auto mb-3"
-                        style="width: 120px; height: 120px; background-color: #f0f0f0; border: 1px solid #ccc; overflow: hidden;">
-                        <!-- Display user image if available -->
-                        @if(isset($user->profile_picture) && $user->profile_picture)
-                        <img src="{{ asset($user->profile_picture) }}" alt="User profile picture"
-                            style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
-                        @else
-                        <!-- Placeholder image when no user image is available -->
-                        <img src="{{ asset('dist/img/user3-128x128.jpg') }}" alt="Default user profile picture"
-                            style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
-                        @endif
-                    </div>
+                    <form id="profilePictureForm" action="{{ route('profile.updatePicture') }}" method="POST"
+                        enctype="multipart/form-data">
+                        @csrf
+                        <div class="profile-user-img img-circle mx-auto mb-3"
+                            style="width: 120px; height: 120px; background-color: #f0f0f0; border: 1px solid #ccc; overflow: hidden; cursor: pointer;"
+                            onclick="document.getElementById('profilePictureInput').click();">
+                            <!-- Display user image if available -->
+                            <img src="{{ $user->image ? asset('storage/' . $user->image) : asset('default/profile-picture.png') }}"
+                                alt="User profile picture"
+                                style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                        </div>
+                        <input type="file" name="image" id="profilePictureInput" style="display: none;" accept="image/*"
+                            onchange="document.getElementById('profilePictureForm').submit();">
+                    </form>
                     <h3 class="profile-username">{{ $user->name }}</h3>
                     <p class="text-muted">{{ $user->role->roleName ?? 'Employee' }}</p>
                 </div>
@@ -51,6 +53,7 @@
                 </div>
                 <div class="card-body">
                     <div class="tab-content">
+                        <!-- Details Section -->
                         <div class="active tab-pane" id="details">
                             <form action="{{ route('profile.update') }}" method="POST" class="form-horizontal">
                                 @csrf
@@ -99,55 +102,69 @@
                                 </div>
                             </form>
                         </div>
+
+                        <!-- Settings Section -->
                         <div class="tab-pane" id="settings">
-                            {{-- <form action="{{ route('profile.updatePassword') }}" method="POST" class="form-horizontal">
+                            <h4>Change Password</h4>
+
+                            <!-- Notifications -->
+                            @if(session('success'))
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                {{ session('success') }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                    aria-label="Close"></button>
+                            </div>
+                            @endif
+
+                            @if(session('error'))
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                {{ session('error') }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                            @endif
+
+                            @if($errors->any())
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <ul class="mb-0">
+                                    @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                    aria-label="Close"></button>
+                            </div>
+                            @endif
+
+                            <!-- Change Password Form -->
+                            <form action="{{ route('profile.changePassword') }}" method="POST">
                                 @csrf
                                 @method('PUT')
-                                <div class="form-group row">
-                                    <label for="currentPassword" class="col-sm-3 col-form-label">Current
-                                        Password</label>
-                                    <div class="col-sm-9">
-                                        <input type="password" name="currentPassword" class="form-control"
-                                            id="currentPassword" placeholder="Current Password">
-                                    </div>
+                                <div class="form-group">
+                                    <label for="currentPassword">Current Password</label>
+                                    <input type="password" name="currentPassword" id="currentPassword"
+                                        class="form-control" required>
+                                    @error('currentPassword')
+                                    <span class="text-danger">{{ $message }}</span>
+                                    @enderror
                                 </div>
-                                <div class="form-group row">
-                                    <label for="newPassword" class="col-sm-3 col-form-label">New Password</label>
-                                    <div class="col-sm-9">
-                                        <input type="password" name="newPassword" class="form-control" id="newPassword"
-                                            placeholder="New Password">
-                                    </div>
+                                <div class="form-group">
+                                    <label for="newPassword">New Password</label>
+                                    <input type="password" name="newPassword" id="newPassword" class="form-control"
+                                        required>
+                                    @error('newPassword')
+                                    <span class="text-danger">{{ $message }}</span>
+                                    @enderror
                                 </div>
-                                <div class="form-group row">
-                                    <label for="confirmPassword" class="col-sm-3 col-form-label">Confirm
-                                        Password</label>
-                                    <div class="col-sm-9">
-                                        <input type="password" name="newPassword_confirmation" class="form-control"
-                                            id="confirmPassword" placeholder="Confirm Password">
-                                    </div>
+                                <div class="form-group">
+                                    <label for="newPassword_confirmation">Confirm New Password</label>
+                                    <input type="password" name="newPassword_confirmation" id="newPassword_confirmation"
+                                        class="form-control" required>
+                                    @error('newPassword_confirmation')
+                                    <span class="text-danger">{{ $message }}</span>
+                                    @enderror
                                 </div>
-                                <div class="form-group row">
-                                    <div class="col-sm-12 text-right">
-                                        <button type="submit" class="btn btn-danger">Change Password</button>
-                                    </div>
-                                </div>
-                            </form> --}}
-
-                            <div class="container" style="width: 50%; margin-top: 20px;">
-                                <div class="row">
-                                    <div class="col-md-12 mt-5">
-                                        <form action="{{ route('admin.sendResetLink') }}" method="POST">
-                                            @csrf
-                                            <div class="form-group">
-                                                <label for="email">Email Address</label>
-                                                <input type="email" name="email" class="form-control" id="email" placeholder="Enter your email"
-                                                    required>
-                                            </div>
-                                            <button type="submit" class="btn btn-primary">Send Reset Link</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
+                                <button type="submit" class="btn btn-primary mt-3">Change Password</button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -158,21 +175,21 @@
 
 <script>
     function toggleEdit() {
-    var inputs = document.querySelectorAll('#details input:not(#inputDOB)');
-    var editBtn = document.getElementById('editBtn');
-    var saveBtn = document.getElementById('saveBtn');
-    
-    inputs.forEach(input => {
-        if (input.hasAttribute('readonly')) {
-            input.removeAttribute('readonly');
-        } else {
-            input.setAttribute('readonly', 'readonly');
-        }
-    });
-    
-    // Toggle the visibility of the Edit and Save buttons
-    editBtn.classList.toggle('d-none');
-    saveBtn.classList.toggle('d-none');
-}
+        var inputs = document.querySelectorAll('#details input:not(#inputDOB)');
+        var editBtn = document.getElementById('editBtn');
+        var saveBtn = document.getElementById('saveBtn');
+
+        inputs.forEach(input => {
+            if (input.hasAttribute('readonly')) {
+                input.removeAttribute('readonly');
+            } else {
+                input.setAttribute('readonly', 'readonly');
+            }
+        });
+
+        // Toggle the visibility of the Edit and Save buttons
+        editBtn.classList.toggle('d-none');
+        saveBtn.classList.toggle('d-none');
+    }
 </script>
 @stop

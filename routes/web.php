@@ -110,6 +110,7 @@ Route::middleware(['auth'])->group(function () {
     // Profile viewing and editing
     Route::get('/profile', [AuthController::class, 'showProfile'])->name('profile.show');
     Route::post('/profile/update', [AuthController::class, 'updateProfile'])->name('profile.update');
+    Route::post('/profile/update-picture', [AuthController::class, 'updateProfilePicture'])->name('profile.updatePicture');
 
     // Password update
     Route::post('/profile/update-password', [AuthController::class, 'updatePassword'])->name('profile.updatePassword');
@@ -165,6 +166,12 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/chickens/printQR', [ChickenController::class, 'printQR'])->name('chickens.printQR');
 
+    Route::post('/vaccination-records/edit-group', [TaskSchedulingController::class, 'showUpdateVaccinationStatusForm'])->name('employee.showUpdateVaccinationStatusForm');
+    Route::post('/vaccination-records/update-group', [TaskSchedulingController::class, 'updateVaccinationGroupStatus'])->name('employee.updateVaccinationGroupStatus');
+
+    Route::put('/profile/changePassword', [AuthController::class, 'changePassword'])->name('profile.changePassword');
+
+
 });
 
 
@@ -181,20 +188,23 @@ Route::get('/admin', function () {
 
 
 
-Route::get('/login', function () {
-    return view('login');
-});
+// Route::get('/login', function () {
+//     return view('login');
+// });
 
 Route::prefix('admin')->name('admin.')->middleware(RedirectIfAuthenticated::class)->group(function () {
     // Admin Login Routes
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 
-    Route::get('/register', [AuthController::class, 'register'])->name('admin.register');
+    Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('register');
+
+    // Handle registration submission
+    Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
     // Forgot Password Routes 
-    Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('forgot_password');
-    Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('send_reset_link');
+    // Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('forgot_password');
+    // Route::get('/forgot-password', [AuthController::class, 'sendResetLink'])->name('send_reset_link');
 
     // Password Reset Routes
     Route::get('/reset-password/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
@@ -203,6 +213,7 @@ Route::prefix('admin')->name('admin.')->middleware(RedirectIfAuthenticated::clas
 });
 
 // Route::get('/admin/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('admin.forgotPassword');
+Route::get('/admin/resetemail', [AuthController::class, 'showEmailResetForm'])->name('admin.sendEmail');
 Route::post('/admin/send-reset-link', [AuthController::class, 'sendResetLink'])->name('admin.sendResetLink');
 Route::get('/admin/reset-password/{token}', [AuthController::class, 'showResetForm'])->name('admin.resetPasswordForm');
 Route::post('/admin/reset-password/{token}', [AuthController::class, 'resetPassword'])->name('admin.resetPassword');

@@ -72,6 +72,7 @@
                         <input type="hidden" name="vaccinationRecordID" value="{{ $record->recordID }}">
                         <input type="hidden" name="cageID" value="{{ $firstChicken->cageID }}">
                         <input type="hidden" name="breedID" value="{{ $firstChicken->breedID }}">
+                        <input type="hidden" name="date_administered" value="{{ $record->date_administered }}">
                         <button type="submit" class="btn btn-danger btn-sm"
                             onclick="return confirm('Are you sure you want to delete all vaccination records for this group?')">
                             Delete Group
