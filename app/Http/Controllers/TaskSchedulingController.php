@@ -328,10 +328,11 @@ class TaskSchedulingController extends Controller
         $startOfWeek = Carbon::now()->startOfWeek()->addWeeks($weekOffset);
         $endOfWeek = Carbon::now()->endOfWeek()->addWeeks($weekOffset);
 
-        // Fetch tasks
         $tasks = DB::table('taskscheduling')
         ->join('cageschedule', 'taskscheduling.scheduleID', '=', 'cageschedule.scheduleID')
         ->join('cage', 'cageschedule.cageID', '=', 'cage.cageID')
+        ->join('chicken', 'cage.cageID', '=', 'chicken.cageID')
+        ->join('chickenbreeds', 'chicken.breedID', '=', 'chickenbreeds.breedID')
         ->leftJoin('assignedemployee',
             'taskscheduling.scheduleID',
             '=',
@@ -341,63 +342,91 @@ class TaskSchedulingController extends Controller
         ->leftJoin('collectionplan', 'taskscheduling.collectionplanID', '=', 'collectionplan.collectionplanID')
         ->leftJoin('feedingplan', 'taskscheduling.feedingplanID', '=', 'feedingplan.feedingplanID')
         ->leftJoin('cullingplan', 'taskscheduling.cullingplanID', '=', 'cullingplan.cullingplanID')
-        ->select(
-            'taskscheduling.taskName',
-            'taskscheduling.taskDescription',
-            'taskscheduling.status',
-            'cage.name as cageName',
-            'user.name as employeeName',
-            'cageschedule.start_date',
-            'cageschedule.culling_date',
-            'collectionplan.time as collectionTime',
-            'collectionplan.frequency as collectionFrequency',
-            'collectionplan.is_repeating as collectionRepeating',
-            'feedingplan.time as feedingTime',
-            'feedingplan.frequency as feedingFrequency',
-            'feedingplan.is_repeating as feedingRepeating',
-            'cageschedule.culling_date as cullingDate',
-            'taskscheduling.scheduleID'
-        )
+        ->leftJoin('vaccination_records', 'chicken.chickenID', '=', 'vaccination_records.chickenID')
+        ->leftJoin('vaccinationplan', 'vaccination_records.vaccinationplanID', '=', 'vaccinationplan.vaccinationplanID')
+        ->leftJoin('vaccinationtype', 'vaccinationplan.vaccinationtypeID', '=', 'vaccinationtype.vaccinationtypeID')
+            ->select(
+                'taskscheduling.taskName',
+                'taskscheduling.taskDescription',
+                'taskscheduling.status',
+                'cage.name as cageName',
+                'chickenbreeds.name as breedName',
+                'user.name as employeeName',
+                'cageschedule.start_date',
+                'cageschedule.culling_date',
+                'collectionplan.time as collectionTime',
+                'collectionplan.frequency as collectionFrequency', // Add frequency for Collection Plan
+                'collectionplan.is_repeating as collectionRepeating',
+                'feedingplan.time as feedingTime',
+                'feedingplan.frequency as feedingFrequency', // Add frequency for Feeding Plan
+                'feedingplan.is_repeating as feedingRepeating',
+                'vaccination_records.date_administered as vaccinationDate',
+                'vaccinationtype.vaccineName as vaccineName',
+                'vaccinationtype.methodConsume as methodConsume',
+                'vaccinationtype.description as vaccineDescription',
+                'vaccinationtype.criteria as vaccineCriteria',
+                'taskscheduling.scheduleID'
+            )
+
         ->orderBy('cageschedule.start_date', 'asc')
         ->get();
 
-        // Normalize tasks
         $normalizedTasks = [];
-        // Process tasks
         foreach ($tasks as $task) {
-            $task = (object) $task; // Ensure the task is an object
+            $task = (object) $task;
 
-            // Handle Collection Plan
+            if (!is_null($task->vaccinationDate)) {
+                $vaccinationTimeSlot = $task->vaccinationDate . ' 00:00:00';
+                $alreadyExists = collect($normalizedTasks[$vaccinationTimeSlot] ?? [])->contains(function ($existingTask) use ($task) {
+                    return $existingTask->cageName === $task->cageName && $existingTask->breedName === $task->breedName && $existingTask->taskType === 'Vaccination';
+                });
+
+                if (!$alreadyExists) {
+                    $normalizedTasks[$vaccinationTimeSlot][] = (object) array_merge((array) $task, [
+                        'taskType' => 'Vaccination',
+                        'taskName' => 'Vaccination Record',
+                        'taskDescription' => "{$task->vaccineName}: {$task->vaccineDescription}",
+                    ]);
+                }
+            }
+
             if (!is_null($task->collectionTime)) {
                 $this->processRepeatingTask($normalizedTasks, $task, $startOfWeek, $endOfWeek, 'collection');
             }
 
-            // Handle Feeding Plan
             if (!is_null($task->feedingTime)) {
                 $this->processRepeatingTask($normalizedTasks, $task, $startOfWeek, $endOfWeek, 'feeding');
             }
 
-            // Handle Culling Plan
-            if (!is_null($task->cullingDate)) {
-                $cullingTimeSlot = $task->cullingDate . ' 00:00:00';
-                $normalizedTasks[$cullingTimeSlot][] = (object) array_merge((array) $task, [
-                    'taskType' => 'Culling',
-                    'taskName' => 'Culling Plan',
-                    'taskDescription' => 'Scheduled culling task',
-                ]);
-            }
-        }
+            if (!is_null($task->culling_date)) {
+                $cullingTimeSlot = $task->culling_date . ' 12:00:00';
 
+                // Ensure no duplicates are added for the same cage and culling type
+                $alreadyExists = collect($normalizedTasks[$cullingTimeSlot] ?? [])->contains(function ($existingTask) use ($task) {
+                    return $existingTask->cageName === $task->cageName && $existingTask->taskType === 'Culling';
+                });
+
+                if (!$alreadyExists) {
+                    $normalizedTasks[$cullingTimeSlot][] = (object) array_merge((array) $task, [
+                        'taskType' => 'Culling',
+                        'taskName' => 'Culling Plan',
+                        'taskDescription' => 'Scheduled culling task',
+                    ]);
+                }
+            }
+
+        }
 
         return view('calender', compact('normalizedTasks', 'startOfWeek', 'endOfWeek', 'weekOffset'));
     }
+
+
 
     /**
      * Process a repeating task and add it to the normalizedTasks array.
      */
     private function processRepeatingTask(&$normalizedTasks, $task, $startOfWeek, $endOfWeek, $type)
     {
-        // Determine task details based on type
         $frequency = $type === 'collection' ? $task->collectionFrequency : $task->feedingFrequency;
         $time = $type === 'collection' ? $task->collectionTime : $task->feedingTime;
         $isRepeating = $type === 'collection' ? $task->collectionRepeating : $task->feedingRepeating;
@@ -405,23 +434,25 @@ class TaskSchedulingController extends Controller
         $startDate = Carbon::parse($task->start_date);
         $currentDate = $startOfWeek->copy();
 
-        // Loop through the week to process tasks
         while ($currentDate->lte($endOfWeek)) {
-            // Ensure the task is within the current week and due
             if ($currentDate->gte($startDate) && $this->isTaskDue($currentDate, $frequency, $startDate, $isRepeating)) {
                 $timeSlot = $currentDate->format('Y-m-d') . ' ' . $time;
 
-                // Avoid adding duplicates by checking for existing entries
+                // Ensure no duplicates are added for the same task type, cage, and time slot
                 $alreadyExists = collect($normalizedTasks[$timeSlot] ?? [])->contains(function ($existingTask) use ($task, $type) {
-                    return $existingTask->scheduleID === $task->scheduleID && $existingTask->taskType === ucfirst($type);
+                    return $existingTask->cageName === $task->cageName &&
+                    $existingTask->taskType === ucfirst($type);
                 });
 
                 if (!$alreadyExists) {
-                    $normalizedTasks[$timeSlot][] = (object) array_merge((array) $task, ['taskType' => ucfirst($type)]);
+                    $normalizedTasks[$timeSlot][] = (object) array_merge((array) $task, [
+                        'taskType' => ucfirst($type),
+                        'taskFrequency' => $frequency // Add frequency to the task
+                    ]);
                 }
             }
 
-            // Increment date based on task frequency
+            // Increment based on frequency
             if ($frequency === 'Daily') {
                 $currentDate->addDay();
             } elseif ($frequency === 'Weekly') {
@@ -431,21 +462,22 @@ class TaskSchedulingController extends Controller
             } elseif ($frequency === 'Monthly') {
                 $currentDate->addMonth();
             } else {
-                break; // Stop processing for unknown frequency
+                break;
             }
         }
     }
 
+
+
     private function isTaskDue(Carbon $currentDate, $frequency, Carbon $startDate, $isRepeating)
     {
-        // If the task does not repeat and the start date has passed, skip it
         if (!$isRepeating && $currentDate->gt($startDate)) {
             return false;
         }
 
         switch (strtolower($frequency)) {
             case 'daily':
-                return true; // Always due
+                return true;
             case 'weekly':
                 return $currentDate->dayOfWeek === $startDate->dayOfWeek;
             case 'biweekly':
@@ -453,7 +485,7 @@ class TaskSchedulingController extends Controller
             case 'monthly':
                 return $currentDate->day === $startDate->day;
             default:
-                return false; // Default: not due
+                return false;
         }
     }
 

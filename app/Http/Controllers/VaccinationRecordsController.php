@@ -49,17 +49,20 @@ class VaccinationRecordsController extends Controller
             'vaccinationRecords.user',
         ])->get();
 
-        // Group chickens by cageID and breedID
-        $vaccinationRecordsGrouped = $chickens->groupBy(function ($chicken) {
-            return $chicken->cageID . '-' . $chicken->breedID;
+        // Group chickens by cageID and then by breedID
+        $vaccinationRecordsGrouped = $chickens->groupBy('cageID')->map(function ($cageGroup) {
+            return $cageGroup->groupBy('breedID');
         });
 
         // Retrieve all breeds for the upgrade functionality
         $breeds = ChickenBreeds::all();
-
+        
         // Pass grouped chickens and available breeds to the view
-        return view('vaccinationRecordManagement', compact('vaccinationRecordsGrouped', 'breeds'));
+        return view('vaccinationRecordManagement',
+            compact('vaccinationRecordsGrouped', 'breeds')
+        );
     }
+
 
 
 

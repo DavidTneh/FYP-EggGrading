@@ -10,13 +10,29 @@
     <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
-    @foreach($vaccinationRecordsGrouped as $groupKey => $chickens)
+    @foreach($vaccinationRecordsGrouped as $cageID => $breeds)
     @php
-    $firstChicken = $chickens->first(); // Get the first chicken in the group
+    $firstChickenInCage = $breeds->first()->first(); // Get the first chicken in the cage
     @endphp
 
-    <h3>Cage: {{ $firstChicken->cage->name ?? 'Unknown Cage' }}</h3>
-    <h4>Breed: {{ $firstChicken->breed->name ?? 'Unknown Breed' }}</h4>
+    <h2>Cage: {{ $firstChickenInCage->cage->name ?? 'Unknown Cage' }}</h2>
+
+    @foreach($breeds as $breedID => $chickens)
+    @php
+    $totalChickens = $chickens->count(); // Count chickens in this breed
+    $firstChickenInBreed = $chickens->first(); // Get the first chicken in the breed
+
+    // Group vaccination records by unique attributes
+    $vaccinationPlans = $chickens->flatMap(function($chicken) {
+    return $chicken->vaccinationRecords;
+    })->groupBy(function($record) {
+    return $record->vaccinationPlanID . '-' . $record->date_administered;
+    });
+    @endphp
+
+    <h3>Breed: {{ $firstChickenInBreed->breed->name ?? 'Unknown Breed' }}</h3>
+    <p><strong>Total Chickens:</strong> {{ $totalChickens }}</p>
+
     <table class="table table-bordered">
         <thead>
             <tr>
@@ -30,38 +46,32 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($chickens as $chicken)
-            @foreach($chicken->vaccinationRecords as $record)
+            @foreach($vaccinationPlans as $key => $records)
+            @php
+            $firstRecord = $records->first(); // Get the first record in the group
+            @endphp
             <tr>
-                <td>{{ optional($record->vaccinationplan->vaccinationType)->vaccineName ?? 'N/A' }}</td>
-                <td>{{ $record->date_administered ?? 'N/A' }}</td>
-                <td>{{ optional($record->user)->name ?? 'N/A' }}</td>
+                <td>{{ optional($firstRecord->vaccinationplan->vaccinationType)->vaccineName ?? 'N/A' }}</td>
+                <td>{{ $firstRecord->date_administered ?? 'N/A' }}</td>
+                <td>{{ optional($firstRecord->user)->name ?? 'N/A' }}</td>
                 <td>
-                    {{ optional($record->vaccinationplan->vaccinationType)->methodConsume ?? 'N/A' }}
+                    {{ optional($firstRecord->vaccinationplan->vaccinationType)->methodConsume ?? 'N/A' }}
                     <ul>
-                        <li>
-                            {{ optional($record->vaccinationplan->vaccinationType)->criteria ?? 'N/A' }}
-                        </li>
-                        <li>
-                            Vaccination Per Chicken: {{ $record->vaccinationplan->vaccinationPerChicken ?? 'N/A' }}
+                        <li>{{ optional($firstRecord->vaccinationplan->vaccinationType)->criteria ?? 'N/A' }}</li>
+                        <li>Vaccination Per Chicken: {{ $firstRecord->vaccinationplan->vaccinationPerChicken ?? 'N/A' }}
                         </li>
                     </ul>
                 </td>
-                <td>{{ $record->status ?? 'N/A' }}</td>
-                <td>{{ $record->notes ?? 'N/A' }}</td>
+                <td>{{ $firstRecord->status ?? 'N/A' }}</td>
+                <td>{{ $firstRecord->notes ?? 'N/A' }}</td>
                 <td>
                     <!-- Upgrade Form -->
                     <form action="{{ route('vaccination_records.editGroup') }}" method="POST" style="display:inline;">
                         @csrf
-                        @method('POST')
-                        <input type="hidden" name="vaccinationRecordID" value="{{ $record->recordID }}">
-                        <input type="hidden" name="cageID" value="{{ $firstChicken->cageID }}">
-                        <input type="hidden" name="breedID" value="{{ $firstChicken->breedID }}">
-                        {{-- <select name="new_breedID" class="form-select" required>
-                            @foreach($breeds as $breed)
-                            <option value="{{ $breed->breedID }}">{{ $breed->name }}</option>
-                            @endforeach
-                        </select> --}}
+                        <input type="hidden" name="cageID" value="{{ $cageID }}">
+                        <input type="hidden" name="breedID" value="{{ $breedID }}">
+                        <input type="hidden" name="vaccinationPlanID" value="{{ $firstRecord->vaccinationPlanID }}">
+                        <input type="hidden" name="date_administered" value="{{ $firstRecord->date_administered }}">
                         <button type="submit" class="btn btn-primary btn-sm">Upgrade</button>
                     </form>
 
@@ -69,10 +79,10 @@
                     <form action="{{ route('vaccination_records.deleteGroup') }}" method="POST" style="display:inline;">
                         @csrf
                         @method('DELETE')
-                        <input type="hidden" name="vaccinationRecordID" value="{{ $record->recordID }}">
-                        <input type="hidden" name="cageID" value="{{ $firstChicken->cageID }}">
-                        <input type="hidden" name="breedID" value="{{ $firstChicken->breedID }}">
-                        <input type="hidden" name="date_administered" value="{{ $record->date_administered }}">
+                        <input type="hidden" name="cageID" value="{{ $cageID }}">
+                        <input type="hidden" name="breedID" value="{{ $breedID }}">
+                        <input type="hidden" name="vaccinationPlanID" value="{{ $firstRecord->vaccinationPlanID }}">
+                        <input type="hidden" name="date_administered" value="{{ $firstRecord->date_administered }}">
                         <button type="submit" class="btn btn-danger btn-sm"
                             onclick="return confirm('Are you sure you want to delete all vaccination records for this group?')">
                             Delete Group
@@ -81,9 +91,9 @@
                 </td>
             </tr>
             @endforeach
-            @endforeach
         </tbody>
     </table>
+    @endforeach
     @endforeach
 </div>
 @endsection

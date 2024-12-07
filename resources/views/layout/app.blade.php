@@ -38,7 +38,7 @@
         </li>
         <li class="nav-item d-none d-sm-inline-block">
           @if(Auth::user()->roleID === 1)
-          <a href="/reportManagement" class="nav-link" style="color: #ffffff;">Report</a>
+          <a href="{{ route('dashboard.index') }}" class="nav-link" style="color: #ffffff;">Report</a>
           @endif
         </li>
       </ul>
