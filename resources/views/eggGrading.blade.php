@@ -59,135 +59,188 @@
 
     <div class="row mt-4">
         <div class="col-md-12 text-center">
-            <h3 id="resultDisplay"></h3>
+            <h3 id="resultDisplay"></h3> <!-- This is where the result will be displayed -->
+            {{-- <h4 id="eggStatus" style="color: red;"></h4> <!-- Display "Egg detected" or "Non-Egg" --> --}}
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
         </div>
     </div>
 </div>
 
 <script>
     let camera1Stream = null;
-        let camera2Stream = null;
-        let availableCameras = [];
+    let camera2Stream = null;
+    let availableCameras = [];
+    let intervalId = null; // Variable to store the interval ID for frame processing
 
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-        async function getAvailableCameras() {
-            try {
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                availableCameras = devices.filter(device => device.kind === 'videoinput');
-                const camera1Select = document.getElementById('camera1-select');
-                const camera2Select = document.getElementById('camera2-select');
+    // Get available cameras
+    async function getAvailableCameras() {
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            availableCameras = devices.filter(device => device.kind === 'videoinput');
+            const camera1Select = document.getElementById('camera1-select');
+            const camera2Select = document.getElementById('camera2-select');
 
-                availableCameras.forEach(camera => {
-                    const option1 = new Option(camera.label || `Camera ${camera.deviceId}`, camera.deviceId);
-                    const option2 = new Option(camera.label || `Camera ${camera.deviceId}`, camera.deviceId);
-                    camera1Select.add(option1);
-                    camera2Select.add(option2);
-                });
+            availableCameras.forEach(camera => {
+                const option1 = new Option(camera.label || `Camera ${camera.deviceId}`, camera.deviceId);
+                const option2 = new Option(camera.label || `Camera ${camera.deviceId}`, camera.deviceId);
+                camera1Select.add(option1);
+                camera2Select.add(option2);
+            });
 
-                if (availableCameras.length === 0) {
-                    console.error("No cameras found.");
+            if (availableCameras.length === 0) {
+                console.error("No cameras found.");
+            }
+        } catch (err) {
+            console.error("Error accessing cameras: ", err);
+        }
+    }
+
+    // Start grading
+    async function startGrading() {
+        document.getElementById('startGrading').disabled = true;
+        document.getElementById('stopGrading').disabled = false;
+
+        const camera1ID = document.getElementById('camera1-select').value;
+        const camera2ID = document.getElementById('camera2-select').value;
+
+        try {
+            camera1Stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    deviceId: {
+                        exact: camera1ID
+                    }
                 }
-            } catch (err) {
-                console.error("Error accessing cameras: ", err);
-            }
+            });
+            document.getElementById('camera1-stream').srcObject = camera1Stream;
+
+            camera2Stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    deviceId: {
+                        exact: camera2ID
+                    }
+                }
+            });
+            document.getElementById('camera2-stream').srcObject = camera2Stream;
+
+            console.log('Grading started');
+            processFrames();
+        } catch (err) {
+            console.error('Error accessing cameras:', err);
+        }
+    }
+
+    // Stop grading and clear the background interval
+    function stopGrading() {
+        document.getElementById('startGrading').disabled = true;
+        document.getElementById('stopGrading').disabled = true;
+        document.getElementById('loading-spinner').style.display = 'block'; // Show the loading spinner
+
+        if (camera1Stream) {
+            camera1Stream.getTracks().forEach(track => track.stop());
+            camera1Stream = null;
+        }
+        if (camera2Stream) {
+            camera2Stream.getTracks().forEach(track => track.stop());
+            camera2Stream = null;
         }
 
-        async function startGrading() {
-            document.getElementById('startGrading').disabled = true;
-            document.getElementById('stopGrading').disabled = false;
-
-            const camera1ID = document.getElementById('camera1-select').value;
-            const camera2ID = document.getElementById('camera2-select').value;
-
-            try {
-                camera1Stream = await navigator.mediaDevices.getUserMedia({
-                    video: { deviceId: { exact: camera1ID } }
-                });
-                document.getElementById('camera1-stream').srcObject = camera1Stream;
-
-                camera2Stream = await navigator.mediaDevices.getUserMedia({
-                    video: { deviceId: { exact: camera2ID } }
-                });
-                document.getElementById('camera2-stream').srcObject = camera2Stream;
-
-                console.log('Grading started');
-                processFrames();
-            } catch (err) {
-                console.error('Error accessing cameras:', err);
-            }
+        // Clear the interval processing frames
+        if (intervalId) {
+            clearInterval(intervalId);
+            intervalId = null;
         }
 
-        function stopGrading() {
+        // Simulate stopping process with a timeout
+        setTimeout(() => {
+            document.getElementById('loading-spinner').style.display = 'none'; // Hide the loading spinner
             document.getElementById('startGrading').disabled = false;
-            document.getElementById('stopGrading').disabled = true;
-
-            if (camera1Stream) {
-                camera1Stream.getTracks().forEach(track => track.stop());
-                camera1Stream = null;
-            }
-            if (camera2Stream) {
-                camera2Stream.getTracks().forEach(track => track.stop());
-                camera2Stream = null;
-            }
-
+            document.getElementById('stopGrading').disabled = false;
             console.log('Grading stopped');
-        }
+        }, 2000);  // Adjust the time for how long the loading animation should last
+    }
 
-        async function processFrames() {
-            const camera1 = document.getElementById('camera1-stream');
-            const camera2 = document.getElementById('camera2-stream');
-            const captureInterval = 1000;
+    // Process frames continuously
+    async function processFrames() {
+        const camera1 = document.getElementById('camera1-stream');
+        const camera2 = document.getElementById('camera2-stream');
+        const captureInterval = 1000;
 
-            const interval = setInterval(async () => {
-                if (!camera1Stream || !camera2Stream) {
-                    clearInterval(interval);
-                    return;
-                }
-
-                const camera1Frame = captureFrame(camera1);
-                const camera2Frame = captureFrame(camera2);
-
-                const grades = await sendFramesToBackend(camera1Frame, camera2Frame);
-                document.getElementById('resultDisplay').innerText = "Final Grade: " + grades.finalGrade;
-            }, captureInterval);
-        }
-
-        function captureFrame(videoElement) {
-            const canvas = document.createElement("canvas");
-            canvas.width = videoElement.videoWidth;
-            canvas.height = videoElement.videoHeight;
-
-            const ctx = canvas.getContext("2d");
-            ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-
-            return canvas.toDataURL("image/jpeg", 1.0); // High-quality JPEG
-        }
-
-        async function sendFramesToBackend(frame1, frame2) {
-            try {
-                const response = await fetch('/api/gradeEggs', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-Token': csrfToken,
-                    },
-                    body: JSON.stringify({ frame1, frame2 }),
-                });
-
-                if (!response.ok) {
-                    const errorMessage = await response.json();
-                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorMessage.error}`);
-                }
-
-                return await response.json();
-            } catch (error) {
-                console.error("Error sending frames to backend:", error);
-                alert(`An error occurred: ${error.message}`);
-                return { finalGrade: "Error" };
+        intervalId = setInterval(async () => {
+            if (!camera1Stream || !camera2Stream) {
+                clearInterval(intervalId);  // Clear interval if cameras are not available
+                intervalId = null;
+                return;
             }
-        }
 
-        document.addEventListener('DOMContentLoaded', getAvailableCameras);
+            const camera1Frame = captureFrame(camera1);
+            const camera2Frame = captureFrame(camera2);
+
+            const grades = await sendFramesToBackend(camera1Frame, camera2Frame);
+            console.log(grades); // Log the API response for debugging
+
+            document.getElementById('resultDisplay').innerText = "Final Grade: " + grades.finalGrade;
+
+            // // Display egg detection result
+            // if (grades.finalGrade === "Non-Egg") {
+            //     document.getElementById('eggStatus').innerText = "Non-Egg detected";
+            //     document.getElementById('eggStatus').style.color = "red";
+            // } else if (grades.finalGrade !== "Error") {
+            //     document.getElementById('eggStatus').innerText = "Egg detected";
+            //     document.getElementById('eggStatus').style.color = "green";
+            // }
+        }, captureInterval);
+    }
+
+    // Capture a frame from the video element
+    function captureFrame(videoElement) {
+        const canvas = document.createElement("canvas");
+        canvas.width = videoElement.videoWidth;
+        canvas.height = videoElement.videoHeight;
+
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+
+        return canvas.toDataURL("image/jpeg", 1.0); // High-quality JPEG
+    }
+
+    // Send frames to the backend for grading
+    async function sendFramesToBackend(frame1, frame2) {
+        try {
+            const response = await fetch('/api/gradeEggs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken,
+                },
+                body: JSON.stringify({
+                    frame1,
+                    frame2
+                }),
+            });
+
+            if (!response.ok) {
+                const errorMessage = await response.json();
+                throw new Error(`HTTP error! status: ${response.status}, message: ${errorMessage.error}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Error sending frames to backend:", error);
+            alert(`An error occurred: ${error.message}`);
+            return {
+                finalGrade: "Error"
+            };
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', getAvailableCameras);
 </script>
 @stop

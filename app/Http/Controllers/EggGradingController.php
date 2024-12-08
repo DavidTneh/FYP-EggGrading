@@ -16,10 +16,10 @@ class EggGradingController extends Controller
         $start_date = $request->input('start_date');
         $end_date = $request->input('end_date');
 
-        // Build the query to group by type, description, eggGradeID, and full created_at (not just the date part)
+        // Build the query to group by date only (ignoring the time part), along with other fields
         $query = Egg::with('eggGrade')
-            ->selectRaw('created_at,MAX(updated_at) as updated_at, type, description, eggGradeID, COUNT(*) as quantity')
-            ->groupBy('created_at', 'type', 'description', 'eggGradeID');
+        ->selectRaw('DATE(created_at) as date, MAX(updated_at) as updated_at, type, description, eggGradeID, COUNT(*) as quantity')
+        ->groupBy(DB::raw('DATE(created_at)'), 'type', 'description', 'eggGradeID');
 
         // If start date and end date are provided, filter the results based on the date part of created_at
         if ($start_date && $end_date) {
@@ -31,6 +31,7 @@ class EggGradingController extends Controller
 
         return view('/eggResults', compact('eggs'));
     }
+
 
 
     // Show the form for grading a new egg
@@ -117,8 +118,8 @@ class EggGradingController extends Controller
         $description = $request->input('description');
         $eggGradeID = $request->input('eggGradeID');
 
-        // Delete all eggs in the group
-        Egg::where('created_at', $receivedDate)
+        // Delete all eggs in the group based on the date (ignoring time)
+        Egg::whereDate('created_at', $receivedDate)  // Only compares the date part
             ->where('type', $type)
             ->where('description', $description)
             ->where('eggGradeID', $eggGradeID)
@@ -127,23 +128,24 @@ class EggGradingController extends Controller
         return redirect()->back()->with('success', 'Egg group deleted successfully.');
     }
 
+
     public function batchEdit(Request $request)
     {
         // Get the original group criteria from the request
-        $createdAt = $request->input('created_at');
+        $createdAt = $request->input('created_at');  // Date part of created_at
         $type = $request->input('type');
         $description = $request->input('description');
         $eggGradeID = $request->input('eggGradeID');
 
         // Retrieve the current values for the group (take the first item for display)
-        $egg = Egg::where('created_at', $createdAt)
+        $egg = Egg::whereDate('created_at', $createdAt)  // Only compares the date part
             ->where('type', $type)
             ->where('description', $description)
             ->where('eggGradeID', $eggGradeID)
             ->first();
 
         // Get the count of eggs in this group (quantity)
-        $quantity = Egg::where('created_at', $createdAt)
+        $quantity = Egg::whereDate('created_at', $createdAt)  // Only compares the date part
             ->where('type', $type)
             ->where('description', $description)
             ->where('eggGradeID', $eggGradeID)
@@ -155,6 +157,7 @@ class EggGradingController extends Controller
 
         return view('/updateResults', compact('egg', 'grades', 'cages', 'quantity'));
     }
+
 
     public function batchUpdate(Request $request)
     {
@@ -234,28 +237,32 @@ class EggGradingController extends Controller
     {
         Log::info("At gradeEggs: Line235");
 
-        // $request->validate([
-        //     'frame1' => 'required|string',
-        //     'frame2' => 'required|string',
-        // ]);
-
         try {
+            Log::info("At gradeEggs: Line244");
+
             $frames = $request->only(['frame1', 'frame2']);
-            // Log::info("Frames checking: " . $frames);
 
             // Decode base64 images
             $frame1 = $this->decodeImage($frames['frame1']);
+            Log::info("Frames checking: " . $frame1);
+
             $frame2 = $this->decodeImage($frames['frame2']);
 
-            
-            
             // Process frames with the model
-            $grade1 = $this->classifyEgg($frame1);
-            $grade2 = $this->classifyEgg($frame2);
+            $grade1 = $this->classifyEgg($frame1); // Egg detection for frame 1
+            $grade2 = $this->classifyEgg($frame2); // Egg detection for frame 2
 
             Log::info("Grade Checking 1: " . $grade1);
             Log::info("Grade Checking 2: " . $grade2);
 
+            // // If either frame is classified as "Non-Egg", skip the egg storage
+            // if ($grade1 == 'Non-Egg' || $grade2 == 'Non-Egg') {
+            //     return response()->json([
+            //         'grade1' => $grade1,
+            //         'grade2' => $grade2,
+            //         'message' => 'One or more frames are detected as Non-Egg. No egg stored.'
+            //     ]);
+            // }
 
             // Determine final grade
             $finalGrade = $this->determineFinalGrade($grade1, $grade2);
@@ -270,7 +277,7 @@ class EggGradingController extends Controller
             return response()->json(['error' => 'An error occurred during grading.'], 500);
         }
     }
-
+ 
 
     private function decodeImage($base64)
     {
@@ -301,106 +308,36 @@ class EggGradingController extends Controller
     }
 
 
+    private function cleanPythonOutput($output)
+    {
+        // Remove any unwanted characters (like TensorFlow progress info)
+        $cleanedOutput = preg_replace('/\x1b\[[0-9;]*[mK]/', '', $output);
+        $cleanedOutput = trim($cleanedOutput);  // Trim unwanted spaces and newlines
+
+        // Extract the numeric part (the predicted class)
+        preg_match('/\d+/', $cleanedOutput, $matches);
+
+        if (isset($matches[0])) {
+            return $matches[0]; // Return the numeric class (prediction)
+        }
+
+        return ''; // Return empty string if no valid output
+    }
+
     private function classifyEgg($image)
     {
-        // // Ensure the directory exists
-        // $directory = storage_path('temp_image');
-        // if (!file_exists($directory)) {
-        //     mkdir($directory, 0755, true);
-        //     Log::info("Created directory: $directory");
-        // }
+        Log::info("in classify");
 
-        // // Save the image in the specified directory
-        // $imagePath = $directory . '/temp_image.jpg'; // Use forward slash
-        // $image = request()->input('frame1');
-
-        // if (preg_match('/^data:image\/(\w+);base64,/', $image, $type)) {
-        //     $image = substr($image, strpos($image, ',') + 1);
-        //     $image = base64_decode($image);
-
-        //     // Log the length of the decoded image
-        //     Log::info("Decoded image data length: " . strlen($image));
-
-        //     // Save the image
-        //     if (file_put_contents($imagePath, $image) === false) {
-        //         Log::error("Failed to save image to $imagePath");
-        //         return -1;
-        //     } else {
-        //         Log::info("Image saved successfully to $imagePath");
-        //     }
-        // } else {
-        //     Log::error("Invalid image data.");
-        //     return -1;
-        // }
-
-        // // Correct the script path using double backslashes
-        // $scriptPath = 'C:\\Users\\User\\Documents\\FYP\\FYP-EggGrading\\CoreTech\\classifyV27Nov.py'; // Update to the actual path
-
-        // // Prepare the command to run the Python script
-        // $command = "python " . escapeshellarg($scriptPath) . " " . escapeshellarg($imagePath);
-
-        // // Run the Python script and capture output
-        // $output = shell_exec($command . " 2>&1");
-        // Log::info("Output from Python script: " . $output);
-
-        // // Extract only the last integer found in the output
-        // preg_match_all('/\b\d+\b/', $output, $matches);
-        // $grade = end($matches[0]) ?? -1;  // Get the last integer found in output
-
-        // return intval($grade);
-
-
-        //script 1
-
-        // $scriptPath = base_path('CoreTech\\classifyV27Nov.py'); // Absolute path to script
-        // $imagePath = storage_path('temp_image/temp_image.jpg');
-
-        // $command = escapeshellcmd("python " . $scriptPath . " " . escapeshellarg($imagePath));
-
-        // $process = proc_open(
-        //     $command,
-        //     [
-        //         1 => ['pipe', 'w'], // stdout
-        //         2 => ['pipe', 'w'], // stderr
-        //     ],
-        //     $pipes
-        // );
-
-        // if (!is_resource($process)) {
-        //     Log::error("Failed to execute Python script.");
-        //     throw new \Exception("Failed to execute Python script");
-        // }
-
-        // // Read stdout and stderr
-        // $output = stream_get_contents($pipes[1]);
-        // $error = stream_get_contents($pipes[2]);
-
-        // fclose($pipes[1]);
-        // fclose($pipes[2]);
-
-        // $returnCode = proc_close($process);
-
-        // if ($returnCode !== 0) {
-        //     Log::error("Error executing Python script: " . $error);
-        //     throw new \Exception("Python script execution failed: " . $error);
-        // }
-
-        // // Extract and clean the output
-        // $cleanOutput = trim($output);
-
-        // if (!is_numeric($cleanOutput)) {
-        //     Log::error("Unexpected output from Python script: " . $cleanOutput);
-        //     throw new \Exception("Unexpected output from Python script");
-        // }
-
-        // return (int)$cleanOutput;
-        //script 2
-
-        $scriptPath = base_path('CoreTech\\classifyV1DecEggWeightDetect.py'); // Absolute path to script
+        $scriptPath = base_path('CoreTech\\classifyV1DecEggWeightDetect.py');
         $imagePath = storage_path('temp_image/temp_image.jpg');
+        Log::info("Model path: " . $scriptPath);
+
+        // Ensure the Python script is being called with the correct image path
+        Log::info("Calling Python script: " . $scriptPath . " with image path: " . $imagePath);
 
         $command = escapeshellcmd("python " . $scriptPath . " " . escapeshellarg($imagePath));
 
+        // Open the process to execute the Python script
         $process = proc_open(
             $command,
             [
@@ -415,9 +352,23 @@ class EggGradingController extends Controller
             throw new \Exception("Failed to execute Python script");
         }
 
-        // Read stdout and stderr
-        $output = stream_get_contents($pipes[1]);
-        $error = stream_get_contents($pipes[2]);
+        // Set a timeout for the process (e.g., 30 seconds)
+        $timeout = 30;
+        $startTime = time();
+        $output = '';
+        $error = '';
+
+        while (!feof($pipes[1]) || !feof($pipes[2])) {
+            if ((time() - $startTime) > $timeout) {
+                // Kill the process if it exceeds the timeout
+                proc_terminate($process);
+                Log::error("Timeout reached for Python script.");
+                throw new \Exception("Python script execution timed out.");
+            }
+
+            $output .= stream_get_contents($pipes[1]);
+            $error .= stream_get_contents($pipes[2]);
+        }
 
         fclose($pipes[1]);
         fclose($pipes[2]);
@@ -429,129 +380,23 @@ class EggGradingController extends Controller
             throw new \Exception("Python script execution failed: " . $error);
         }
 
-        // Extract and clean the output
-        $cleanOutput = trim($output);
+        // Clean and extract the output
+        $cleanOutput = $this->cleanPythonOutput($output);
+        Log::info("Cleaned Output: " . $cleanOutput);
 
         if (!is_numeric($cleanOutput)) {
             Log::error("Unexpected output from Python script: " . $cleanOutput);
             throw new \Exception("Unexpected output from Python script");
         }
 
-        return (int)$cleanOutput;
+        // Check for egg or non-egg classification
+        if ($cleanOutput == 0) {
+            return 'Non-Egg';  // Non-Egg classification
+        }
 
-        // $scriptPath = base_path('CoreTech\\classifyV29fullweight.py'); // Absolute path to script
-        // $imagePath = storage_path('temp_image/temp_image.jpg');
-
-        // $command = escapeshellcmd("python " . $scriptPath . " " . escapeshellarg($imagePath));
-
-        // $process = proc_open(
-        //     $command,
-        //     [
-        //         1 => ['pipe', 'w'], // stdout
-        //         2 => ['pipe', 'w'], // stderr
-        //     ],
-        //     $pipes
-        // );
-
-        // if (!is_resource($process)) {
-        //     Log::error("Failed to execute Python script.");
-        //     throw new \Exception("Failed to execute Python script");
-        // }
-
-        // // Read stdout and stderr
-        // $output = stream_get_contents($pipes[1]);
-        // $error = stream_get_contents($pipes[2]);
-
-        // fclose($pipes[1]);
-        // fclose($pipes[2]);
-
-        // $returnCode = proc_close($process);
-
-        // if ($returnCode !== 0) {
-        //     Log::error("Error executing Python script: " . $error);
-        //     throw new \Exception("Python script execution failed: " . $error);
-        // }
-
-        // // Extract and clean the output
-        // $cleanOutput = trim($output);
-
-        // if (!is_numeric($cleanOutput)) {
-        //     Log::error("Unexpected output from Python script: " . $cleanOutput);
-        //     throw new \Exception("Unexpected output from Python script");
-        // }
-
-        // return (int)$cleanOutput;
+        return (int)$cleanOutput; // Return the numeric prediction for weight
     }
 
-    // private function determineFinalGrade($grade1, $grade2)
-    // {
-    //     Log::info("Grade from camera 1: " . $grade1);
-    //     Log::info("Grade from camera 2: " . $grade2);
-
-    //     // Calculate the average of the grades
-    //     $averageGrade = ($grade1 + $grade2) / 2;
-
-    //     // Round the average to the nearest whole number for grading
-    //     $finalGrade = round($averageGrade);
-
-    //     // Define a mapping of numerical grades to egg grades
-    //     $gradeMapping = [
-    //         0 => "Unknown Quality",
-    //         1 => "Fair Quality",
-    //         2 => "Grade F",
-    //         3 => "Grade E",
-    //         4 => "Grade D",
-    //         5 => "Grade C",
-    //         6 => "Grade B",
-    //         7 => "Grade A",
-    //         8 => "Grade AA"
-    //     ];
-
-    //     // Get the egg grade from the mapping
-    //     $eggGrade = $gradeMapping[$finalGrade] ?? "Unknown Grade"; // Default to "Unknown Grade" if not found
-
-    //     // Log the final egg grade
-    //     Log::info("Final Egg Grade: " . $eggGrade);
-
-    //     return $eggGrade; // Return the readable egg grade
-    // }
-
-
-    // private function determineFinalGrade($grade1, $grade2)
-    // {
-    //     Log::info("Grade from camera 1: " . $grade1);
-    //     Log::info("Grade from camera 2: " . $grade2);
-
-    //     // Define the grade mapping
-    //     // $gradeMapping = [
-    //     //     1 => "Jumbo",
-    //     //     2 => "Large",
-    //     //     3 => "Medium",
-    //     //     4 => "Small",
-    //     //     5 => "Extra Large",
-    //     // ];
-
-    //     $gradeMapping = [
-    //         0 => "Unknown",
-    //         1 => "Grade A",
-    //         2 => "Grade C",
-    //     ];
-
-    //     // Determine the better grade (lower numerical value is better)
-    //     $betterGradeID = max($grade1, $grade2);
-
-    //     Log::info("Better Egg Grade: " . $betterGradeID);
-
-
-    //     // Get the egg grade from the mapping
-    //     $eggGrade = $gradeMapping[$betterGradeID] ?? "Unknown Grade";
-    //     Log::info("Testing: " . $gradeMapping[$betterGradeID]);
-
-    //     // Log the final egg grade
-    //     Log::info("Final Egg Grade: " . $eggGrade);
-
-    //     return $eggGrade;
-    // }
 
     private function determineFinalGrade($grade1, $grade2)
     {
@@ -622,8 +467,25 @@ class EggGradingController extends Controller
             52 => 80.64,
             53 => 82.90,
             54 => 89.50,
-            55 => 92.62
+            55 => 92.62,
+            56 => 'A', // Special case for Legg
+            57 => 'B', // Special case for Megg
+            58 => 'C', // Special case for Segg
+            59 => 'A' // Special case for XLegg
         ];
+
+        // If either grade is a special case (Legg, Megg, Segg, XLegg), return it directly
+        if (in_array($grade1, [56, 57, 58, 59])) {
+            Log::info("Special egg category detected from camera 1: " . $idToWeight[$grade1]);
+            $this->storeEggGrade('Egg', $idToWeight[$grade1]);
+            return $idToWeight[$grade1]; // Return the special category name
+        }
+
+        if (in_array($grade2, [56, 57, 58, 59])) {
+            Log::info("Special egg category detected from camera 2: " . $idToWeight[$grade2]);
+            $this->storeEggGrade('Egg', $idToWeight[$grade2]);
+            return $idToWeight[$grade2]; // Return the special category name
+        }
 
         // Validate input IDs
         if (!isset($idToWeight[$grade1]) || !isset($idToWeight[$grade2])) {
@@ -649,7 +511,28 @@ class EggGradingController extends Controller
 
         // Log and return the final grade
         Log::info("Final Egg Grade (Malaysia): " . $finalGrade);
+        $this->storeEggGrade('Egg', $finalGrade);
         return $finalGrade;
+    }
+
+
+
+
+    private function storeEggGrade($eggType, $eggGrade)
+    {
+        Log::info("Grade1: " . $eggGrade);
+        // Find the egg grade ID based on the grade name
+        $eggGrade = EggGrade::where('grade', $eggGrade)->first();
+        $eggGradeID = $eggGrade->eggGradeID;
+        Log::info("Grade2: " . $eggGradeID);
+
+        // Store egg information
+        Egg::create([
+            'type' => $eggType,
+            'eggGradeID' => $eggGradeID,
+            'description' => 'Egg', // Or any other description you want to add
+            'cageID' => 1, // Example: Use the appropriate cage ID
+        ]);
     }
 
     public function gradeLiveEgg(Request $request)
