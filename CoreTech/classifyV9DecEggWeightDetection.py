@@ -30,9 +30,7 @@ except Exception as e:
 
 # Label map for Egg Detection (Egg vs Non-Egg)
 egg_label_map = {
-    1: "Brown-egg", 
-    2: "Non-egg", 
-    3: "White-egg"
+    1: "Brown-egg", 2: "Non-egg", 3: "White-egg"
 }
 
 # Label map for Weight Classification (Different types of eggs)
@@ -98,11 +96,11 @@ def predict_class(img_path, model):
     egg_prediction = np.argmax(predictions[0])  # Egg Detection output
     weight_prediction = np.argmax(predictions[1])  # Weight Classification output
 
-    # Map the predictions to the corresponding labels
-    egg_class = egg_label_map.get(egg_prediction + 1, "Unknown")  # Add 1 to match the label map indexing
-    weight_class = weight_label_map.get(weight_prediction, "Unknown")
+    # Map the predictions to the corresponding IDs
+    egg_class_id = egg_prediction  # Egg class ID from the prediction
+    weight_class_id = weight_prediction  # Weight class ID from the prediction
 
-    return egg_class, weight_class
+    return egg_class_id, weight_class_id
 
 # Main function to prevent re-processing the same image within a short time
 def process_image(image_path):
@@ -118,11 +116,11 @@ def process_image(image_path):
     if last_processed_time is None or current_time - last_processed_time > processing_interval or image_hash != last_processed_time[1]:
         try:
             # Predict the class ID and return the result
-            egg_class, weight_class = predict_class(image_path, model)
+            egg_class_id, weight_class_id = predict_class(image_path, model)
 
             # Log the predictions and return the result
-            print(f"Predicted Egg Class: {egg_class}")
-            print(f"Predicted Weight Class: {weight_class}")
+            print(f"Predicted Egg Class ID: {egg_class_id}")
+            print(f"Predicted Weight Class ID: {weight_class_id}")
             last_processed_time = (current_time, image_hash)  # Update last processed time and image hash
 
         except Exception as e:

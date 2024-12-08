@@ -249,20 +249,11 @@ class EggGradingController extends Controller
             $frame2 = $this->decodeImage($frames['frame2']);
 
             // Process frames with the model
-            $grade1 = $this->classifyEgg($frame1); // Egg detection for frame 1
-            $grade2 = $this->classifyEgg($frame2); // Egg detection for frame 2
+            $grade1 = $this->classifyEgg($frame1);
+            $grade2 = $this->classifyEgg($frame2);
 
             Log::info("Grade Checking 1: " . $grade1);
             Log::info("Grade Checking 2: " . $grade2);
-
-            // // If either frame is classified as "Non-Egg", skip the egg storage
-            // if ($grade1 == 'Non-Egg' || $grade2 == 'Non-Egg') {
-            //     return response()->json([
-            //         'grade1' => $grade1,
-            //         'grade2' => $grade2,
-            //         'message' => 'One or more frames are detected as Non-Egg. No egg stored.'
-            //     ]);
-            // }
 
             // Determine final grade
             $finalGrade = $this->determineFinalGrade($grade1, $grade2);
@@ -389,12 +380,7 @@ class EggGradingController extends Controller
             throw new \Exception("Unexpected output from Python script");
         }
 
-        // Check for egg or non-egg classification
-        if ($cleanOutput == 0) {
-            return 'Non-Egg';  // Non-Egg classification
-        }
-
-        return (int)$cleanOutput; // Return the numeric prediction for weight
+        return (int)$cleanOutput; // Return the numeric prediction
     }
 
 
