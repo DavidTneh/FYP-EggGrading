@@ -22,6 +22,6 @@ class AdminMiddleware
         }
 
         // Redirect non-admins to a forbidden page or login
-        return redirect()->route('home')->with('error', 'Access denied');
+        return redirect()->route('task-schedulings.calendar')->with('error', 'Access denied');
     }
 }

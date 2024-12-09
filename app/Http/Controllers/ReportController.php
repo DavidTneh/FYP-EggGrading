@@ -15,32 +15,33 @@ class ReportController extends Controller
 {
     public function index(Request $request)
     {
-        $reportType = $request->get('report_type');
+        $reportType = $request->get('report_type', 'summary'); // Default to 'summary'
+
+        $totalChickens = Chicken::count();
+        $totalVaccinatedChickens = Chicken::whereHas('vaccinationRecords')->count();
+        $totalNotVaccinatedChickens = $totalChickens - $totalVaccinatedChickens;
 
         $summaryData = [
-            'totalEggs' => Egg::count(),
+            'totalEggs' => Egg::whereDate('created_at', today())->count(),
             'pendingTasks' => TaskScheduling::where('status', 'pending')->count(),
-            'totalChickens' => Chicken::count(),
+            'totalChickens' => $totalChickens,
             'totalCages' => Cage::count(),
-            'totalVaccinatedChickens' => VaccinationRecords::distinct('chickenID')->count(),
-            'totalEggsByGrade' => EggGrade::join('eggs', 'eggs.eggGradeID', '=', 'egggrade.eggGradeID')
-            ->select('egggrade.grade', DB::raw('COUNT(eggs.eggsID) as total'))
-            ->groupBy('egggrade.grade')
-            ->get()
+            'totalVaccinatedChickens' => $totalVaccinatedChickens,
+            'totalNotVaccinatedChickens' => $totalNotVaccinatedChickens,
+            'vaccinatedPercentage' => $totalChickens > 0 ? round(($totalVaccinatedChickens / $totalChickens) * 100, 2) : 0,
         ];
 
         $detailsData = [
-            'cageDetails' => Chicken::join('cage', 'chicken.cageID', '=', 'cage.cageID')
-            ->join('chickenbreeds', 'chicken.breedID', '=', 'chickenbreeds.breedID')
-            ->select('cage.name as cage_name', 'chickenbreeds.name as breed_name', DB::raw('COUNT(chicken.chickenID) as total_chickens'))
-            ->groupBy('cage.name', 'chickenbreeds.name')
-            ->get(),
-            'cageNames' => Cage::pluck('name'),
-            'cageChickenCounts' => Cage::withCount('chickens')->pluck('chickens_count')
+            'cageNames' => Cage::pluck('name')->toArray(),
+            'cageChickenCounts' => Cage::withCount('chickens')->pluck('chickens_count')->toArray(),
+            'cages' => Cage::withCount(['chickens', 'chickens as vaccinated_chickens' => function ($query) {
+                $query->whereHas('vaccinationRecords');
+            }])->get(),
         ];
 
         return view('reportManagement', compact('summaryData', 'detailsData', 'reportType'));
     }
+
 
 
     /**

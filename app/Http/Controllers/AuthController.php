@@ -64,7 +64,6 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => $request->password,
             'status' => true,  // Add your status condition if necessary
-                // Add your role condition if necessary
         ];
 
         // Attempt to log in using the default 'web' guard
@@ -73,14 +72,21 @@ class AuthController extends Controller
 
             // Set the session_id for the user
             $authUser = Auth::user();
-            $user = User::find($authUser->userID);  // Ensure you are using the correct ID column
+            $user = User::find($authUser->userID); // Ensure you are using the correct ID column
             $user->session_id = Session::getId();
             $user->save();
 
             // Reset login attempts after successful login
             $loginAttempt->delete();
 
-            // Redirect after successful login
+            // Redirect based on roleID
+            if ($user->roleID == 2) {
+                return redirect()->route('task-schedulings.calendar')->with('success', "Welcome Back");
+            } elseif ($user->roleID == 1) {
+                return redirect()->route('dashboard.index')->with('success', "Welcome Back");
+            }
+
+            // Default redirect if roleID doesn't match
             return redirect()->intended(route('/admin'))->with('success', "Welcome Back");
         } else {
             // Increment attempts if login fails
@@ -103,6 +109,7 @@ class AuthController extends Controller
             return back()->withErrors(['email' => 'Invalid credentials'])->withInput();
         }
     }
+
 
     // public function register(Request $request)
     // {

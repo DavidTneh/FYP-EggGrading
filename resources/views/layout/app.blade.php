@@ -28,13 +28,25 @@
               class="fas fa-bars"></i></a>
         </li>
         <li class="nav-item d-none d-sm-inline-block">
-          <b><a href="/admin" class="nav-link" style="color: #ffffff;">Home</a></b>
+          {{-- <b><a href="/admin" class="nav-link" style="color: #ffffff;">Home</a></b> --}}
+
+          @if(Auth::user()->roleID === 1)
+          <b><a href="{{ route('dashboard.index') }}" class="nav-link">
+              <p style="color: #ffffff;">
+                Dashboard
+              </p>
+            </a>
+          </b>
+
+          @endif
         </li>
         <li class="nav-item d-none d-sm-inline-block">
           <a href="/eggGrading" class="nav-link" style="color: #ffffff;">Grade Egg</a>
         </li>
         <li class="nav-item d-none d-sm-inline-block">
+          @if(Auth::user()->roleID === 2)
           <a href="{{ route('task-schedulings.calendar') }}" class="nav-link" style="color: #ffffff;">Calender</a>
+          @endif
         </li>
         <li class="nav-item d-none d-sm-inline-block">
           @if(Auth::user()->roleID === 1)
@@ -242,19 +254,21 @@
               <a href="{{ route('dashboard.index') }}" class="nav-link">
                 <i class="nav-icon fas fa-chart-pie"></i>
                 <p>
-                  Reports
+                  Dashboard
                 </p>
               </a>
-              
+
               @endif
 
             </li>
-            
+
             <li class="nav-item">
+              @if(Auth::user()->roleID === 2)
               <a href="{{ route('employee.listAssignedTasks') }}" class="nav-link">
                 <i class="fas fa-check nav-icon"></i>
                 <p>Task Submission Form</p>
               </a>
+              @endif
             </li>
 
             {{-- <li class="nav-item">

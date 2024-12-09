@@ -11,6 +11,7 @@
                 <th>Date of Birth</th>
                 <th>QR Code</th>
                 <th>Actions</th>
+                <th>Vaccination Summary</th>
             </tr>
         </thead>
         <tbody>
@@ -45,6 +46,27 @@
                         <button type="submit" class="btn btn-danger btn-sm"
                             onclick="return confirm('Are you sure you want to delete this chicken?')">Delete</button>
                     </form>
+                </td>
+                <td>
+                    @if($chicken->vaccinationRecords->isEmpty())
+                    <p>No Vaccination Records</p>
+                    @else
+                    @php
+                    // Group vaccination records by vaccine name and count occurrences
+                    $vaccineSummary = $chicken->vaccinationRecords
+                    ->groupBy(function ($record) {
+                    return $record->vaccinationplan->vaccinationType->vaccineName ?? 'Unknown Vaccine';
+                    })
+                    ->map(function ($records) {
+                    return $records->count();
+                    });
+                    @endphp
+                    <ul>
+                        @foreach($vaccineSummary as $vaccineName => $count)
+                        <li>{{ $vaccineName }}: {{ $count }} time(s)</li>
+                        @endforeach
+                    </ul>
+                    @endif
                 </td>
             </tr>
             @endforeach

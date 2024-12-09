@@ -87,7 +87,11 @@ class ChickenController extends Controller
     // Show details of all chickens in a specific group (by cage and breed)
     public function showGrouped($cageID, $breedID)
     {
-        $chickens = Chicken::with(['breed', 'cage'])
+        $chickens = Chicken::with([
+                'breed',
+                'cage',
+                'vaccinationRecords.vaccinationplan.vaccinationType',
+            ])
             ->where('cageID', $cageID)
             ->where('breedID', $breedID)
             ->get();
@@ -97,6 +101,7 @@ class ChickenController extends Controller
 
         return view('viewChicken', compact('chickens', 'cage', 'breed'));
     }
+
 
     public function editGroup(Request $request)
     {

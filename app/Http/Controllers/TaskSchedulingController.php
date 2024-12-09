@@ -560,20 +560,28 @@ class TaskSchedulingController extends Controller
         )
         ->get();
 
-        // Fetch vaccination records assigned to the employee
+        // Fetch and group vaccination records assigned to the employee
         $assignedVaccinationRecords = VaccinationRecords::with([
             'chicken.breed',
             'chicken.cage',
             'vaccinationplan.vaccinationType',
         ])
         ->where('administered_by', $employeeID) // Filter by the logged-in user
-        ->get();
+        ->get()
+        ->groupBy('chicken.cageID')
+            ->map(function ($cageGroup) {
+                return $cageGroup->groupBy('chicken.breedID')
+                ->map(function ($breedGroup) {
+                    return $breedGroup->groupBy(function ($record) {
+                        return $record->vaccinationplanID . '-' . $record->date_administered;
+                    });
+                });
+            });
 
         return view('taskStatusListing',
             compact('assignedTasks', 'assignedVaccinationRecords')
         );
     }
-
 
 
     public function showUpdateTaskStatusForm(Request $request)

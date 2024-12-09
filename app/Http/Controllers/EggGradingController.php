@@ -232,7 +232,7 @@ class EggGradingController extends Controller
         // Redirect after success
         return redirect()->route('/eggResults')->with('success', 'Egg group updated successfully.');
     }
-
+ 
     public function gradeEggs(Request $request)
     {
         Log::info("At gradeEggs: Line235");

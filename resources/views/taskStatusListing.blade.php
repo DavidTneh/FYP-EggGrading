@@ -41,6 +41,7 @@
                 <td>{{ $task->end_date }}</td>
                 <td>{{ ucfirst($task->status) }}</td>
                 <td>
+                    @if(strtolower($task->status) !== 'completed')
                     <form action="{{ route('employee.showUpdateTaskStatusForm') }}" method="POST"
                         style="display: inline-block;">
                         @csrf
@@ -49,6 +50,7 @@
                             <i class="fas fa-edit"></i> Update Status
                         </button>
                     </form>
+                    @endif
                 </td>
             </tr>
             @empty
@@ -61,14 +63,26 @@
 
     <hr>
 
-    <!-- Vaccination Records Table -->
+    <!-- Vaccination Records -->
     <h2>Your Assigned Vaccination Records</h2>
+    
+    @foreach($assignedVaccinationRecords as $cageID => $breeds)
+    @php
+    $firstChickenInCage = $breeds->first()->first()->first(); // Get the first record in the cage
+    @endphp
+    
+    <h3>Cage: {{ $firstChickenInCage->chicken->cage->name ?? 'Unknown Cage' }}</h3>
+    
+    @foreach($breeds as $breedID => $plans)
+    @php
+    $firstChickenInBreed = $plans->first()->first(); // Get the first record in the breed
+    @endphp
+    
+    <h4>Breed: {{ $firstChickenInBreed->chicken->breed->name ?? 'Unknown Breed' }}</h4>
+    
     <table class="table table-bordered">
         <thead>
             <tr>
-                <th>#</th>
-                <th>Cage</th>
-                <th>Breed</th>
                 <th>Vaccination Plan</th>
                 <th>Date Administered</th>
                 <th>Status</th>
@@ -76,27 +90,31 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($assignedVaccinationRecords as $index => $record)
+            @foreach($plans as $planGroup)
+            @php
+            $firstRecord = $planGroup->first(); // Get the first record in the group
+            @endphp
             <tr>
-                <td>{{ $index + 1 }}</td>
-                <td>{{ $record->chicken->cage->name ?? 'N/A' }}</td>
-                <td>{{ $record->chicken->breed->name ?? 'N/A' }}</td>
-                <td>{{ $record->vaccinationplan->vaccinationType->vaccineName ?? 'N/A' }}</td>
-                <td>{{ $record->date_administered }}</td>
-                <td>{{ ucfirst($record->status) }}</td>
+                <td>{{ $firstRecord->vaccinationplan->vaccinationType->vaccineName ?? 'N/A' }}</td>
+                <td>{{ $firstRecord->date_administered }}</td>
+                <td>{{ ucfirst($firstRecord->status) }}</td>
                 <td>
+                    @if(strtolower($firstRecord->status) !== 'completed')
                     <form method="POST" action="{{ route('employee.showUpdateVaccinationStatusForm') }}">
                         @csrf
-                        <input type="hidden" name="cageID" value="{{ $record->chicken->cageID }}">
-                        <input type="hidden" name="breedID" value="{{ $record->chicken->breedID }}">
-                        <input type="hidden" name="vaccinationplanID" value="{{ $record->vaccinationplanID }}">
-                        <input type="hidden" name="date_administered" value="{{ $record->date_administered }}">
+                        <input type="hidden" name="cageID" value="{{ $firstRecord->chicken->cageID }}">
+                        <input type="hidden" name="breedID" value="{{ $firstRecord->chicken->breedID }}">
+                        <input type="hidden" name="vaccinationplanID" value="{{ $firstRecord->vaccinationplanID }}">
+                        <input type="hidden" name="date_administered" value="{{ $firstRecord->date_administered }}">
                         <button type="submit" class="btn btn-primary">Update Status</button>
                     </form>
+                    @endif
                 </td>
             </tr>
             @endforeach
         </tbody>
     </table>
+    @endforeach
+    @endforeach
 </div>
 @stop

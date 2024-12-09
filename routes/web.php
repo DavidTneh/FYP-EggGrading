@@ -174,6 +174,9 @@ Route::middleware(['auth'])->group(function () {
 
 });
 
+Route::middleware(['auth', 'Employee'])->group(function () {
+
+});
 
 Route::get('/home', [AuthController::class, 'showLoginForm']);
 // Route::get('/home/create', [HomeController::class, 'create']);
