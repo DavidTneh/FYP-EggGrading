@@ -30,6 +30,22 @@
 
                 <div class="col-md-8 p-5">
                     <h2 class="h5 text-center mb-4">Registration</h2>
+                    @if ($errors->any())
+                    <div class="alert alert-danger alert-dismissible">
+                        <h5><i class="icon fas fa-ban"></i> Error!</h5>
+                        <ul>
+                            @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                    @endif
+
+@if (session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+            @endif
                     <form method="POST" action="{{ route('admin.register.post') }}">
                         @csrf
                         <div class="row">

@@ -2,8 +2,25 @@
 
 @section('content')
 <div class="container mt-5">
+    @if ($errors->any())
+    <div class="alert alert-danger alert-dismissible">
+        <h5><i class="icon fas fa-ban"></i> Error!</h5>
+        <ul>
+            @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+    
+@if (session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+            @endif
     <!-- Dashboard Cards -->
     <div class="row g-4">
+
         <div class="col-md-4">
             <div class="card mb-3" style="height: 150px;">
                 <div class="row g-0 h-100">

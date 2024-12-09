@@ -8,6 +8,24 @@
 
 @section('content')
 <div class="container" style="width: 80%; margin-top: 20px;">
+    @if ($errors->any())
+    <div class="alert alert-danger alert-dismissible">
+        <h5><i class="icon fas fa-ban"></i> Error!</h5>
+        <ul>
+            @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
+    @if (session('status'))
+    <div class="alert alert-success alert-dismissible">
+        <h5><i class="icon fas fa-check"></i> Success!</h5>
+        {{ session('status') }}
+    </div>
+    @endif
+
     <div class="alert alert-danger" role="alert">
         <strong>Are you sure you want to delete this feeding plan?</strong>
         <p>This will also delete all related tasks, assigned employees, and cage schedules associated with this plan.

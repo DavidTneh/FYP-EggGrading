@@ -11,6 +11,24 @@
     <div class="row">
         <div class="col-md-12 mt-5">
             <h1 class="mt-5">Culling Plans</h1>
+            @if ($errors->any())
+            <div class="alert alert-danger alert-dismissible">
+                <h5><i class="icon fas fa-ban"></i> Error!</h5>
+                <ul>
+                    @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+
+            @if (session('status'))
+            <div class="alert alert-success alert-dismissible">
+                <h5><i class="icon fas fa-check"></i> Success!</h5>
+                {{ session('status') }}
+            </div>
+            @endif
+
             <a href="{{ route('cullingplan.create') }}" class="btn btn-success mb-3 float-right">Add New Culling
                 Plan</a>
 

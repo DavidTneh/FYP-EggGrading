@@ -15,8 +15,9 @@
                 <h4>Forgot Password</h4>
             </div>
             <div class="card-body">
-                @if(session('status'))
-                <div class="alert alert-success">
+                @if (session('status'))
+                <div class="alert alert-success alert-dismissible">
+                    <h5><i class="icon fas fa-check"></i> Success!</h5>
                     {{ session('status') }}
                 </div>
                 @endif

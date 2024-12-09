@@ -23,4 +23,9 @@ class Cage extends Model
     {
         return $this->hasMany(Chicken::class, 'cageID');
     }
+
+    public function cageschedule()
+    {
+        return $this->hasMany(CageSchedule::class, 'cageID');
+    }
 }

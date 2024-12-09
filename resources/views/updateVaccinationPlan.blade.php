@@ -11,6 +11,21 @@
     <div class="row">
         <div class="col-md-12 mt-5">
             <h1 class="mt-5">Update Vaccination Plan <i class="fas fa-edit"></i></h1>
+            @if (session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+            @endif
+
+            @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul>
+                    @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
             <form action="{{ route('vaccinationplan.update') }}" method="POST">
                 @csrf
                 @method('PUT')
@@ -36,7 +51,8 @@
 
                 <div class="form-group">
                     <label for="ageThreshold">Age Thres Hold</label>
-                    <input type="number" name="ageThreshold" class="form-control" id="ageThreshold" min="1" value="{{ $plan->ageThreshold }}" required>
+                    <input type="number" name="ageThreshold" class="form-control" id="ageThreshold" min="1"
+                        value="{{ $plan->ageThreshold }}" required>
                 </div>
 
                 {{-- <div class="form-group">

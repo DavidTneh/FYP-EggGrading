@@ -11,6 +11,21 @@
     <div class="row">
         <div class="col-md-12 mt-5">
             <h1 class="mt-5">Update Culling Plan <i class="fas fa-edit"></i></h1>
+            @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul>
+                    @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+
+            @if (session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+            @endif
 
             <form action="{{ route('cullingplan.update', $cullingPlan->cullingplanID) }}" method="POST">
                 @csrf

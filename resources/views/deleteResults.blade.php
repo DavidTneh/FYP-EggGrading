@@ -3,7 +3,7 @@
 @section('title', 'Delete Egg Grading')
 
 @section('content_header')
-    <h1>Delete Egg Grading</h1>
+<h1>Delete Egg Grading</h1>
 @stop
 
 @section('content')
@@ -11,6 +11,23 @@
     <div class="row">
         <div class="col-md-12 mt-5">
             <h1>Delete Egg Grading</h1>
+            @if ($errors->any())
+            <div class="alert alert-danger alert-dismissible">
+                <h5><i class="icon fas fa-ban"></i> Error!</h5>
+                <ul>
+                    @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+
+            @if (session('status'))
+            <div class="alert alert-success alert-dismissible">
+                <h5><i class="icon fas fa-check"></i> Success!</h5>
+                {{ session('status') }}
+            </div>
+            @endif
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Are you sure you want to delete this egg grading?</h5>
@@ -23,7 +40,8 @@
                     <p class="card-text"><strong>Price:</strong> 0.50</p>
                     <p class="card-text"><strong>Quantity:</strong> 100</p>
                     {{-- action="{{ route('grading-results.destroy', $egg['id']) }}" --}}
-                    <form method="POST" onsubmit="return confirm('Are you sure you want to delete this egg grading? Once deleted no way to recover back!');">
+                    <form method="POST"
+                        onsubmit="return confirm('Are you sure you want to delete this egg grading? Once deleted no way to recover back!');">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-danger">Delete</button>

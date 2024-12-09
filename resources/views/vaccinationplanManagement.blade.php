@@ -12,6 +12,22 @@
         <div class="col-md-12 mt-5">
             <h1 class="mt-5">Vaccination Plans <i class="fas fa-syringe"></i></h1>
 
+            @if (session('success'))
+                <div class="alert alert-success">
+                    {{ session('success') }}
+                </div>
+                @endif
+                
+                @if ($errors->any())
+                <div class="alert alert-danger">
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+                @endif
+
             <div class="mb-3 float-right">
                 <a href="{{ route('vaccinationplan.create') }}" class="btn btn-success">Add New Vaccination Plan</a>
             </div>

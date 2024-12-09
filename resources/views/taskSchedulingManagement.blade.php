@@ -9,6 +9,23 @@
 @section('content')
 <div class="container mt-5">
     <h1>Task Schedulings</h1>
+    @if ($errors->any())
+    <div class="alert alert-danger alert-dismissible">
+        <h5><i class="icon fas fa-ban"></i> Error!</h5>
+        <ul>
+            @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
+@if (session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+            @endif
+
     <a href="{{ route('task-schedulings.create') }}" class="btn btn-success mb-3">
         <i class="fas fa-plus"></i> Add New Task Scheduling
     </a>

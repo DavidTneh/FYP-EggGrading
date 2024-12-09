@@ -232,31 +232,43 @@ class EggGradingController extends Controller
         // Redirect after success
         return redirect()->route('/eggResults')->with('success', 'Egg group updated successfully.');
     }
- 
+
+    public function eggGrading(Request $request)
+    {
+        $cages = Cage::all();
+        return view('eggGrading', compact('cages'));
+    }
+
+
     public function gradeEggs(Request $request)
     {
         Log::info("At gradeEggs: Line235");
 
         try {
-            Log::info("At gradeEggs: Line244");
-
             $frames = $request->only(['frame1', 'frame2']);
+            $cageID = $request->input('cageID');
+
+            if (!$cageID) {
+                throw new \Exception("Cage ID is required for grading.");
+            }
 
             // Decode base64 images
-            $frame1 = $this->decodeImage($frames['frame1']);
-            Log::info("Frames checking: " . $frame1);
-
-            $frame2 = $this->decodeImage($frames['frame2']);
+            $frame1Path = $this->decodeImage($frames['frame1']);
+            $frame2Path = $this->decodeImage($frames['frame2']);
 
             // Process frames with the model
-            $grade1 = $this->classifyEgg($frame1);
-            $grade2 = $this->classifyEgg($frame2);
+            $grade1 = $this->classifyEgg($frame1Path);
+            $grade2 = $this->classifyEgg($frame2Path);
 
             Log::info("Grade Checking 1: " . $grade1);
             Log::info("Grade Checking 2: " . $grade2);
 
             // Determine final grade
-            $finalGrade = $this->determineFinalGrade($grade1, $grade2);
+            $finalGrade = $this->determineFinalGrade($grade1, $grade2, $cageID);
+
+            // Delete temporary images
+            $this->deleteImage($frame1Path);
+            $this->deleteImage($frame2Path);
 
             return response()->json([
                 'grade1' => $grade1,
@@ -268,6 +280,18 @@ class EggGradingController extends Controller
             return response()->json(['error' => 'An error occurred during grading.'], 500);
         }
     }
+
+
+    private function deleteImage($imagePath)
+    {
+        if (file_exists($imagePath)) {
+            unlink($imagePath);
+            Log::info("Image deleted: " . $imagePath);
+        } else {
+            Log::warning("Image not found for deletion: " . $imagePath);
+        }
+    }
+
  
 
     private function decodeImage($base64)
@@ -384,7 +408,7 @@ class EggGradingController extends Controller
     }
 
 
-    private function determineFinalGrade($grade1, $grade2)
+    private function determineFinalGrade($grade1, $grade2, $cageID)
     {
         Log::info("Grade from camera 1: " . $grade1);
         Log::info("Grade from camera 2: " . $grade2);
@@ -397,7 +421,7 @@ class EggGradingController extends Controller
             'D' => 0,  // Grade D: Below 55g
         ];
 
-        // Define the grade mapping based on the IDs
+        // Define the mapping of ID to weight or special grade
         $idToWeight = [
             1 => 47.14,
             2 => 47.17,
@@ -457,19 +481,19 @@ class EggGradingController extends Controller
             56 => 'A', // Special case for Legg
             57 => 'B', // Special case for Megg
             58 => 'C', // Special case for Segg
-            59 => 'A' // Special case for XLegg
+            59 => 'A'  // Special case for XLegg
         ];
 
-        // If either grade is a special case (Legg, Megg, Segg, XLegg), return it directly
+        // Handle special cases for grades (e.g., Legg, Megg, Segg, XLegg)
         if (in_array($grade1, [56, 57, 58, 59])) {
             Log::info("Special egg category detected from camera 1: " . $idToWeight[$grade1]);
-            $this->storeEggGrade('Egg', $idToWeight[$grade1]);
+            $this->storeEggGrade('Egg', $idToWeight[$grade1], $cageID);
             return $idToWeight[$grade1]; // Return the special category name
         }
 
         if (in_array($grade2, [56, 57, 58, 59])) {
             Log::info("Special egg category detected from camera 2: " . $idToWeight[$grade2]);
-            $this->storeEggGrade('Egg', $idToWeight[$grade2]);
+            $this->storeEggGrade('Egg', $idToWeight[$grade2], $cageID);
             return $idToWeight[$grade2]; // Return the special category name
         }
 
@@ -479,14 +503,14 @@ class EggGradingController extends Controller
             return "Unknown Grade";
         }
 
-        // Get the weights for the provided IDs
+        // Retrieve the weights for the provided IDs
         $weight1 = $idToWeight[$grade1];
         $weight2 = $idToWeight[$grade2];
 
-        // Determine the better weight (higher weight is better)
+        // Determine the better weight (lower weight is better in this context)
         $betterWeight = min($weight1, $weight2);
 
-        // Map the better weight to the grade
+        // Map the better weight to a grade
         $finalGrade = "D"; // Default to Grade D
         foreach ($weightToGradeMapping as $grade => $threshold) {
             if ($betterWeight >= $threshold) {
@@ -495,102 +519,103 @@ class EggGradingController extends Controller
             }
         }
 
-        // Log and return the final grade
+        // Store the final grade with cage information
         Log::info("Final Egg Grade (Malaysia): " . $finalGrade);
-        $this->storeEggGrade('Egg', $finalGrade);
+        $this->storeEggGrade('Egg', $finalGrade, $cageID);
+
         return $finalGrade;
     }
 
-
-
-
-    private function storeEggGrade($eggType, $eggGrade)
+    private function storeEggGrade($eggType, $eggGrade, $cageID)
     {
-        Log::info("Grade1: " . $eggGrade);
-        // Find the egg grade ID based on the grade name
-        $eggGrade = EggGrade::where('grade', $eggGrade)->first();
-        $eggGradeID = $eggGrade->eggGradeID;
-        Log::info("Grade2: " . $eggGradeID);
+        Log::info("Storing egg grade: " . $eggGrade . " for cage ID: " . $cageID);
 
-        // Store egg information
+        $eggGrade = EggGrade::where('grade', $eggGrade)->first();
+        if (!$eggGrade) {
+            Log::error("Invalid egg grade: " . $eggGrade);
+            return;
+        }
+
         Egg::create([
             'type' => $eggType,
-            'eggGradeID' => $eggGradeID,
-            'description' => 'Egg', // Or any other description you want to add
-            'cageID' => 1, // Example: Use the appropriate cage ID
+            'eggGradeID' => $eggGrade->eggGradeID,
+            'description' => 'Egg grading result',
+            'cageID' => $cageID,
         ]);
     }
 
-    public function gradeLiveEgg(Request $request)
-    {
-        Log::info("Processing live frames for grading.");
 
-        try {
-            // Log the incoming request for debugging
-            Log::info("Request payload: ", $request->all());
 
-            // Decode the base64 images
-            $frame1 = $this->decodeImage($request->input('frame1'));
-            $frame2 = $this->decodeImage($request->input('frame2'));
+    // public function gradeLiveEgg(Request $request)
+    // {
+    //     Log::info("Processing live frames for grading.");
+
+    //     try {
+    //         // Log the incoming request for debugging
+    //         Log::info("Request payload: ", $request->all());
+
+    //         // Decode the base64 images
+    //         $frame1 = $this->decodeImage($request->input('frame1'));
+    //         $frame2 = $this->decodeImage($request->input('frame2'));
             
 
-            // Classify each frame
-            $grade1 = $this->classifyEggDirect($frame1);
-            $grade2 = $this->classifyEggDirect($frame2);
-            Log::info("Checking Grade 1." .$grade1);
-            Log::info("Checking Grade 2." .$grade2);
+    //         // Classify each frame
+    //         $grade1 = $this->classifyEggDirect($frame1);
+    //         $grade2 = $this->classifyEggDirect($frame2);
+    //         Log::info("Checking Grade 1." .$grade1);
+    //         Log::info("Checking Grade 2." .$grade2);
 
-            // Determine the final grade
-            $finalGrade = $this->determineFinalGrade($grade1, $grade2);
-            Log::info("Checking Final Grade." . $finalGrade);
+    //         // Determine the final grade
+    //         $finalGrade = $this->determineFinalGrade($grade1, $grade2);
+    //         Log::info("Checking Final Grade." . $finalGrade);
 
-            return response()->json([
-                'grade1' => $grade1,
-                'grade2' => $grade2,
-                'grade' => $finalGrade,
-            ]);
-        } catch (\Exception $e) {
-            Log::error("Error during live grading: " . $e->getMessage());
-            return response()->json(['error' => 'An error occurred during grading.'], 500);
-        }
-    }
+    //         return response()->json([
+    //             'grade1' => $grade1,
+    //             'grade2' => $grade2,
+    //             'grade' => $finalGrade,
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         Log::error("Error during live grading: " . $e->getMessage());
+    //         return response()->json(['error' => 'An error occurred during grading.'], 500);
+    //     }
+    // }
 
-    private function classifyEggDirect($imageData)
-    {
-        // Convert image data into a format that TensorFlow can process
-        $command = escapeshellcmd("python ..\\CoreTech\\liveclassify.py");
-        $process = proc_open(
-            $command,
-            [
-                0 => ['pipe', 'r'], // stdin
-                1 => ['pipe', 'w'], // stdout
-                2 => ['pipe', 'w'], // stderr
-            ],
-            $pipes
-        );
+    // private function classifyEggDirect($imageData)
+    // {
+    //     // Convert image data into a format that TensorFlow can process
+    //     $command = escapeshellcmd("python ..\\CoreTech\\liveclassify.py");
+    //     $process = proc_open(
+    //         $command,
+    //         [
+    //             0 => ['pipe', 'r'], // stdin
+    //             1 => ['pipe', 'w'], // stdout
+    //             2 => ['pipe', 'w'], // stderr
+    //         ],
+    //         $pipes
+    //     );
 
-        if (is_resource($process)) {
-            fwrite($pipes[0], $imageData); // Send the image data
-            fclose($pipes[0]);
+    //     if (is_resource($process)) {
+    //         fwrite($pipes[0], $imageData); // Send the image data
+    //         fclose($pipes[0]);
 
-            $output = stream_get_contents($pipes[1]);
-            fclose($pipes[1]);
+    //         $output = stream_get_contents($pipes[1]);
+    //         fclose($pipes[1]);
 
-            $error = stream_get_contents($pipes[2]);
-            fclose($pipes[2]);
+    //         $error = stream_get_contents($pipes[2]);
+    //         fclose($pipes[2]);
 
-            $returnCode = proc_close($process);
+    //         $returnCode = proc_close($process);
 
-            if ($returnCode !== 0) {
-                Log::error("Python script error: " . $error);
-                throw new \Exception("Python script execution failed.");
-            }
+    //         if ($returnCode !== 0) {
+    //             Log::error("Python script error: " . $error);
+    //             throw new \Exception("Python script execution failed.");
+    //         }
 
-            return intval(trim($output)); // Return the classification result
-        } else {
-            throw new \Exception("Failed to execute Python script.");
-        }
-    }
+    //         return intval(trim($output)); // Return the classification result
+    //     } else {
+    //         throw new \Exception("Failed to execute Python script.");
+    //     }
+    // }
 
 
 

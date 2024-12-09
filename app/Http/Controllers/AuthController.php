@@ -59,11 +59,17 @@ class AuthController extends Controller
             $loginAttempt->save();
         }
 
+        // Check if the account is disabled
+        $user = User::where('email', $request->email)->first();
+        if ($user && !$user->status) {
+            return back()->withErrors(['email' => 'Your account is disabled. Please contact the administrator.'])->withInput();
+        }
+
         // Credentials for login
         $credentials = [
             'email' => $request->email,
             'password' => $request->password,
-            'status' => true,  // Add your status condition if necessary
+            'status' => true, // Ensure the account is active
         ];
 
         // Attempt to log in using the default 'web' guard
@@ -109,6 +115,7 @@ class AuthController extends Controller
             return back()->withErrors(['email' => 'Invalid credentials'])->withInput();
         }
     }
+
 
 
     // public function register(Request $request)
@@ -161,21 +168,56 @@ class AuthController extends Controller
         return view('register'); // Ensure this matches your blade file
     }
 
-    // Handle registration logic
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255|unique:user,name',
             'email' => 'required|string|email|max:255|unique:user,email',
             'password' => 'required|string|min:8|confirmed',
-            'phoneNo' => 'required|string|max:20',
-            'dob' => 'required|date',
+            'phoneNo' => ['required', 'regex:/^(01)[0-9]{8,9}$/'], // Malaysian phone number validation
+            'dob' => ['required', 'date', function ($attribute, $value, $fail) {
+                $age = \Carbon\Carbon::parse($value)->age;
+                if ($age < 18) {
+                    $fail('You must be at least 18 years old to register.');
+                }
+            }],
             'address' => 'required|string|max:255',
             'terms' => 'accepted',
         ]);
 
+        // Custom error messages
         if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
+            $errors = [];
+
+            if ($validator->errors()->has('name')) {
+                $errors['Name'] = 'Name is required and must be unique.';
+            }
+
+            if ($validator->errors()->has('email')) {
+                $errors['Email'] = 'Email already registered.';
+            }
+
+            if ($validator->errors()->has('password')) {
+                $errors['Password'] = 'Password must be at least 8 characters and match confirmation.';
+            }
+
+            if ($validator->errors()->has('phoneNo')) {
+                $errors['Phone Number'] = 'Phone number must be a valid Malaysian number.';
+            }
+
+            if ($validator->errors()->has('dob')) {
+                $errors['Date of Birth'] = 'You must be at least 18 years old to register.';
+            }
+
+            if ($validator->errors()->has('address')) {
+                $errors['Address'] = 'Address is required.';
+            }
+
+            if ($validator->errors()->has('terms')) {
+                $errors['Terms'] = 'You must accept the terms and conditions.';
+            }
+
+            return redirect()->back()->withErrors($errors)->withInput();
         }
 
         // Create the user
@@ -192,6 +234,7 @@ class AuthController extends Controller
 
         return redirect()->route('admin.login')->with('success', 'Registration successful! Please login.');
     }
+
 
     public function logout(Request $request)
     {

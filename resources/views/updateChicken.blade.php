@@ -3,6 +3,21 @@
 @section('content')
 <div class="container">
     <h1>Update Chicken</h1>
+    @if ($errors->any())
+    <div class="alert alert-danger">
+        <ul>
+            @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
+@if (session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+            @endif         </div>
     <form method="POST" action="{{ route('chickens.update') }}">
         @csrf
         @method('PUT')

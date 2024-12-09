@@ -3,6 +3,23 @@
 @section('content')
 <div class="container">
     <h1>Confirm Deletion</h1>
+    @if ($errors->any())
+    <div class="alert alert-danger alert-dismissible">
+        <h5><i class="icon fas fa-ban"></i> Error!</h5>
+        <ul>
+            @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
+    @if (session('status'))
+    <div class="alert alert-success alert-dismissible">
+        <h5><i class="icon fas fa-check"></i> Success!</h5>
+        {{ session('status') }}
+    </div>
+    @endif
     <div class="alert alert-danger">
         <strong>Warning!</strong> You are about to delete a chicken.
     </div>

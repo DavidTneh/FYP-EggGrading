@@ -8,6 +8,21 @@
 
 @section('content')
 <div class="container" style="width: 80%; margin-top: 20px;">
+    @if ($errors->any())
+    <div class="alert alert-danger">
+        <ul>
+            @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
+@if (session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+            @endif
     <div class="row">
         <div class="col-md-12 mt-5">
             <h1 class="mt-5">Update Cage <i class="fas fa-edit"></i></h1>

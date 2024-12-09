@@ -3,6 +3,24 @@
 @section('content')
 <div class="container">
     <h1>Chicken Management</h1>
+    @if ($errors->any())
+    <div class="alert alert-danger alert-dismissible">
+        <h5><i class="icon fas fa-ban"></i> Error!</h5>
+        <ul>
+            @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
+    @if (session('status'))
+    <div class="alert alert-success alert-dismissible">
+        <h5><i class="icon fas fa-check"></i> Success!</h5>
+        {{ session('status') }}
+    </div>
+    @endif
+
     <a href="{{ route('chickens.create') }}" class="btn btn-success mb-3">Add New Chicken</a>
 
     @foreach($chickensGrouped->groupBy('cageID') as $cageID => $cageGroups)
@@ -17,20 +35,21 @@
         </thead>
         <tbody>
             @foreach($cageGroups as $group)
-            <tr> 
+            <tr>
                 <td>{{ $group->breed->name }}</td>
                 <td>{{ $group->quantity }}</td>
                 <td>
-                    <a href="{{ route('chickens.showGrouped', ['cageID' => $group->cageID, 'breedID' => $group->breedID]) }}" class="btn btn-info btn-sm">View</a>
-                    
-                        
+                    <a href="{{ route('chickens.showGrouped', ['cageID' => $group->cageID, 'breedID' => $group->breedID]) }}"
+                        class="btn btn-info btn-sm">View</a>
+
+
                     <form action="{{ route('chickens.editGroup') }}" method="POST" style="display:inline;">
-                                            @csrf
-                                            @method('POST')
-                                            <input type="hidden" name="cageID" value="{{ $group->cageID }}">
-                                            <input type="hidden" name="breedID" value="{{ $group->breedID }}">
-                                            <button type="submit" class="btn btn-primary btn-sm">Edit Group</button>
-                                        </form>
+                        @csrf
+                        @method('POST')
+                        <input type="hidden" name="cageID" value="{{ $group->cageID }}">
+                        <input type="hidden" name="breedID" value="{{ $group->breedID }}">
+                        <button type="submit" class="btn btn-primary btn-sm">Edit Group</button>
+                    </form>
 
                     <form action="{{ route('chickens.destroyGrouped') }}" method="POST" style="display:inline;">
                         @csrf
@@ -45,7 +64,7 @@
             </tr>
             @endforeach
         </tbody>
-    </table> 
+    </table>
     @endforeach
 </div>
 @stop

@@ -35,7 +35,6 @@
 
                 @if ($errors->any())
                 <div class="alert alert-danger alert-dismissible">
-                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">X</button>
                     <h5><i class="icon fas fa-ban"></i> Error!</h5>
                     <ul>
                         @foreach ($errors->all() as $error)
@@ -45,9 +44,9 @@
                 </div>
                 @endif
 
+
                 @if (session('status'))
                 <div class="alert alert-success alert-dismissible">
-                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">X</button>
                     <h5><i class="icon fas fa-check"></i> Success!</h5>
                     {{ session('status') }}
                 </div>
@@ -58,14 +57,14 @@
                     <div class="mb-3">
                         <label for="email" class="form-label">Email</label>
                         {{-- value="john@example.com" --}}
-                        <input type="email" class="form-control" id="email" name="email"   required>
-                            {{-- value="{{ old('email') }}" --}}
+                        <input type="email" class="form-control" id="email" name="email" required>
+                        {{-- value="{{ old('email') }}" --}}
                     </div>
                     <div class="mb-3">
                         <label for="password" class="form-label">Password</label>
                         <div style="position:relative;">
                             {{-- value="password" --}}
-                            <input class="form-control" type="password" id="password" name="password" required >
+                            <input class="form-control" type="password" id="password" name="password" required>
                             <span class="toggle-password" onclick="togglePass()"
                                 style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer;">
                                 <i id="toggleIcon" class="fas fa-eye"></i>
@@ -76,7 +75,8 @@
                         style="background-color: #007bff; border: none;">Login</button>
                 </form>
                 <div class="mt-3 text-center">
-                    <p class="mb-0">Don't have an account? <a href="{{route('admin.register')}}" class="text-primary-custom">Register</a></p>
+                    <p class="mb-0">Don't have an account? <a href="{{route('admin.register')}}"
+                            class="text-primary-custom">Register</a></p>
                 </div>
                 <div class="mt-2 text-center">
                     <form action="{{ route('admin.sendEmail') }}" method="GET">
@@ -87,7 +87,8 @@
                         </button>
                     </form>
 
-                    {{-- <a href="{{ route('admin.sendResetLink') }}" class="text-primary-custom">Forgot your password?</a> --}}
+                    {{-- <a href="{{ route('admin.sendResetLink') }}" class="text-primary-custom">Forgot your
+                        password?</a> --}}
                 </div>
             </div>
         </div>

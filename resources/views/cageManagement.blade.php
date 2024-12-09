@@ -12,6 +12,24 @@
         <div class="col-md-12 mt-5">
             <h1 class="mt-5">Cage Management</h1>
 
+            @if ($errors->any())
+            <div class="alert alert-danger alert-dismissible">
+                <h5><i class="icon fas fa-ban"></i> Error!</h5>
+                <ul>
+                    @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+
+            @if (session('status'))
+            <div class="alert alert-success alert-dismissible">
+                <h5><i class="icon fas fa-check"></i> Success!</h5>
+                {{ session('status') }}
+            </div>
+            @endif
+
             <!-- Add New Cage Button -->
             <div class="mb-3 float-right">
                 <a href="{{ route('cages.create') }}" class="btn btn-success">Add New Cage</a>

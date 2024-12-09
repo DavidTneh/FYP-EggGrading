@@ -41,7 +41,7 @@
           @endif
         </li>
         <li class="nav-item d-none d-sm-inline-block">
-          <a href="/eggGrading" class="nav-link" style="color: #ffffff;">Grade Egg</a>
+          <a href="{{ route('eggGrading') }}" class="nav-link" style="color: #ffffff;">Grade Egg</a>
         </li>
         <li class="nav-item d-none d-sm-inline-block">
           @if(Auth::user()->roleID === 2)
@@ -135,6 +135,20 @@
               </a>
 
             </li>
+
+            <li class="nav-item">
+              @if(Auth::user()->roleID === 1)
+              <a href="{{ route('dashboard.index') }}" class="nav-link">
+                <i class="nav-icon fas fa-chart-pie"></i>
+                <p>
+                  Dashboard
+                </p>
+              </a>
+            
+              @endif
+            
+            </li>
+            
             <li class="nav-item">
               @if(Auth::user()->roleID === 1)
               <a href="{{ route('users.index') }}" class="nav-link">
@@ -147,7 +161,7 @@
 
             </li>
             <li class="nav-item">
-              <a href="/eggGrading" class="nav-link">
+              <a href="{{ route('eggGrading') }}" class="nav-link">
                 <i class="fas fa-egg nav-icon"></i>
                 <p>
                   Grade Egg
@@ -249,18 +263,7 @@
               @endif
             </li>
 
-            <li class="nav-item">
-              @if(Auth::user()->roleID === 1)
-              <a href="{{ route('dashboard.index') }}" class="nav-link">
-                <i class="nav-icon fas fa-chart-pie"></i>
-                <p>
-                  Dashboard
-                </p>
-              </a>
-
-              @endif
-
-            </li>
+            
 
             <li class="nav-item">
               @if(Auth::user()->roleID === 2)

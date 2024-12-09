@@ -4,11 +4,23 @@
 <div class="container">
     <h1>Vaccination Records Management</h1>
 
-    <a href="{{ route('vaccination_records.create') }}" class="btn btn-success mb-3">Add Vaccination Record</a>
-
-    @if(session('success'))
-    <div class="alert alert-success">{{ session('success') }}</div>
+    @if (session('success'))
+    <div class="alert alert-success">
+        {{ session('success') }}
+    </div>
     @endif
+
+    @if ($errors->any())
+    <div class="alert alert-danger">
+        <ul>
+            @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
+    <a href="{{ route('vaccination_records.create') }}" class="btn btn-success mb-3">Add Vaccination Record</a>
 
     @foreach($vaccinationRecordsGrouped as $cageID => $breeds)
     @php

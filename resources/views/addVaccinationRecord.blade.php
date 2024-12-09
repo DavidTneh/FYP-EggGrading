@@ -14,8 +14,11 @@
     </div>
     @endif
 
-    @if(session('success'))
-    <div class="alert alert-success">{{ session('success') }}</div>
+    @if (session('status'))
+    <div class="alert alert-success alert-dismissible">
+        <h5><i class="icon fas fa-check"></i> Success!</h5>
+        {{ session('status') }}
+    </div>
     @endif
 
     <form action="{{ route('vaccination_records.store') }}" method="POST">

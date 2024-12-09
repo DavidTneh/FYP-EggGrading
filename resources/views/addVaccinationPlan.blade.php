@@ -11,6 +11,23 @@
     <div class="row">
         <div class="col-md-12 mt-5">
             <h1 class="mt-5">Add Vaccination Plan <i class="fas fa-plus"></i></h1>
+            @if ($errors->any())
+            <div class="alert alert-danger alert-dismissible">
+                <h5><i class="icon fas fa-ban"></i> Error!</h5>
+                <ul>
+                    @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+
+            @if (session('status'))
+            <div class="alert alert-success alert-dismissible">
+                <h5><i class="icon fas fa-check"></i> Success!</h5>
+                {{ session('status') }}
+            </div>
+            @endif
             <form action="{{ route('vaccinationplan.store') }}" method="POST">
                 @csrf
                 <div class="form-group">
@@ -25,7 +42,7 @@
                 <div class="form-group">
                     <label for="vaccinationPerChicken">Vaccination per Chicken</label>
                     <input type="number" name="vaccinationPerChicken" class="form-control" id="vaccinationPerChicken"
-                       min="1" required>
+                        min="1" required>
                 </div>
 
                 <div class="form-group">

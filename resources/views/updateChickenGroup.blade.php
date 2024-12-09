@@ -5,6 +5,21 @@
 @section('content')
 <div class="container">
     <h1>Update Group of Chickens</h1>
+    @if ($errors->any())
+    <div class="alert alert-danger">
+        <ul>
+            @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
+@if (session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+            @endif
     <h3>Cage: {{ $cage->name }} | Breed: {{ $breed->name }}</h3>
 
     <!-- Chicken List Table -->

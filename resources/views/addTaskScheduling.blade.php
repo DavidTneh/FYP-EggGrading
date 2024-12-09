@@ -20,6 +20,13 @@
     </div>
     @endif
 
+    @if (session('status'))
+    <div class="alert alert-success alert-dismissible">
+        <h5><i class="icon fas fa-check"></i> Success!</h5>
+        {{ session('status') }}
+    </div>
+    @endif
+
     <form action="{{ route('task-schedulings.store') }}" method="POST">
         @csrf
         <div class="form-group">

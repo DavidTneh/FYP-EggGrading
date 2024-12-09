@@ -11,6 +11,23 @@
     <div class="row">
         <div class="col-md-12 mt-5">
             <h1>Delete Task Scheduling <i class="fas fa-trash-alt"></i></h1>
+            @if ($errors->any())
+            <div class="alert alert-danger alert-dismissible">
+                <h5><i class="icon fas fa-ban"></i> Error!</h5>
+                <ul>
+                    @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+
+            @if (session('status'))
+            <div class="alert alert-success alert-dismissible">
+                <h5><i class="icon fas fa-check"></i> Success!</h5>
+                {{ session('status') }}
+            </div>
+            @endif
             <div class="alert alert-danger" role="alert">
                 <strong>Are you sure you want to delete this task scheduling?</strong>
             </div>

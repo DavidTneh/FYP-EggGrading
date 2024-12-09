@@ -104,4 +104,19 @@ class UserController extends Controller
 
         return redirect()->route('users.index')->with('success', 'User deleted successfully.');
     }
+
+    // Disable a user account
+    public function disable(Request $request)
+    {
+        $id = $request->input('userID');
+
+        // Find the user by ID
+        $user = User::findOrFail($id);
+
+        // Update the user's status to false (disabled)
+        $user->update(['status' => false]);
+
+        return redirect()->route('users.index')->with('success', 'User account disabled successfully.');
+    }
+
 }

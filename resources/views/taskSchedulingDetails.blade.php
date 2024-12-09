@@ -11,6 +11,23 @@
     <div class="row">
         <div class="col-md-12 mt-5">
             <h1>Task Scheduling Details <i class="fas fa-info-circle"></i></h1>
+            @if ($errors->any())
+            <div class="alert alert-danger alert-dismissible">
+                <h5><i class="icon fas fa-ban"></i> Error!</h5>
+                <ul>
+                    @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+
+@if (session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+            @endif
+            
             <div class="card">
                 <div class="card-body">
                     <h3 class="card-title"><strong>{{ $taskScheduling->taskName }}</strong></h3>

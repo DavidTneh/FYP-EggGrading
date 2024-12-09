@@ -20,6 +20,12 @@
     </div>
     @endif
 
+    @if (session('success'))
+    <div class="alert alert-success">
+        {{ session('success') }}
+    </div>
+    @endif
+
     <form action="{{ route('task-schedulings.update') }}" method="POST">
         @csrf
         @method('PUT')
@@ -98,18 +104,19 @@
             </select>
         </div>
 
-<div class="form-group">
-    <label for="start_date">Start Date</label>
-    <input type="date" class="form-control" id="start_date" name="start_date"
-        value="{{ $taskScheduling->cageSchedules->first()->start_date ?? '' }}" min="{{ date('Y-m-d') }}" required>
-</div>
+        <div class="form-group">
+            <label for="start_date">Start Date</label>
+            <input type="date" class="form-control" id="start_date" name="start_date"
+                value="{{ $taskScheduling->cageSchedules->first()->start_date ?? '' }}" min="{{ date('Y-m-d') }}"
+                required>
+        </div>
 
-<div class="form-group">
-    <label for="end_date">End Date</label>
-    <input type="date" class="form-control" id="end_date" name="end_date"
-        value="{{ $taskScheduling->cageSchedules->first()->end_date ?? '' }}"
-        min="{{ $taskScheduling->cageSchedules->first()->start_date ?? date('Y-m-d') }}" required>
-</div>
+        <div class="form-group">
+            <label for="end_date">End Date</label>
+            <input type="date" class="form-control" id="end_date" name="end_date"
+                value="{{ $taskScheduling->cageSchedules->first()->end_date ?? '' }}"
+                min="{{ $taskScheduling->cageSchedules->first()->start_date ?? date('Y-m-d') }}" required>
+        </div>
 
         <div class="form-group">
             <label for="status">Status</label>

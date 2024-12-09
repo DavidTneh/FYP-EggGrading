@@ -11,7 +11,23 @@
     <div class="row">
         <div class="col-md-12 mt-5">
             <h1 class="mt-5">Confirm Deletion</h1>
+            @if ($errors->any())
+            <div class="alert alert-danger alert-dismissible">
+                <h5><i class="icon fas fa-ban"></i> Error!</h5>
+                <ul>
+                    @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
 
+            @if (session('status'))
+            <div class="alert alert-success alert-dismissible">
+                <h5><i class="icon fas fa-check"></i> Success!</h5>
+                {{ session('status') }}
+            </div>
+            @endif
             <div class="alert alert-danger">
                 <strong>Warning!</strong> You are about to delete the cage and all its related data.
             </div>
@@ -22,7 +38,7 @@
                 <tbody>
                     <tr>
                         <th>ID</th>
-                        <td>{{ $cage->cageID }}</td>
+                        <td>{{ $cage->cageID}}</td>
                     </tr>
                     <tr>
                         <th>Name</th>
@@ -44,98 +60,6 @@
                         <th>Status</th>
                         <td>{{ $cage->status }}</td>
                     </tr>
-                </tbody>
-            </table>
-
-            <!-- Related Chickens -->
-            <h3>Related Chickens</h3>
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Chicken ID</th>
-                        <th>Breed ID</th>
-                        <th>Date of Birth</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($chickens as $chicken)
-                    <tr>
-                        <td>{{ $chicken->chickenID }}</td>
-                        <td>{{ $chicken->breedID }}</td>
-                        <td>{{ $chicken->dob }}</td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-
-            <!-- Related Eggs -->
-            <h3>Related Eggs</h3>
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Egg ID</th>
-                        <th>Type</th>
-                        <th>Grade</th>
-                        <th>Description</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($eggs as $egg)
-                    <tr>
-                        <td>{{ $egg->eggsID }}</td>
-                        <td>{{ $egg->type }}</td>
-                        <td>{{ $egg->eggGradeID }}</td>
-                        <td>{{ $egg->description }}</td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-
-            <!-- Related Vaccination Plans -->
-            <h3>Related Vaccination Plans</h3>
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Plan ID</th>
-                        <th>Type ID</th>
-                        <th>Vaccination per Chicken</th>
-                        <th>Total Required</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($vaccinationPlans as $plan)
-                    <tr>
-                        <td>{{ $plan->vaccinationplanID }}</td>
-                        <td>{{ $plan->vaccinationtypeID }}</td>
-                        <td>{{ $plan->vaccinationPerChicken }}</td>
-                        <td>{{ $plan->totalVaccinationRequired }}</td>
-                        <td>{{ $plan->date }}</td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-
-            <!-- Related Cage Schedules -->
-            <h3>Related Cage Schedules</h3>
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Schedule ID</th>
-                        <th>Task ID</th>
-                        <th>Created At</th>
-                        <th>Updated At</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($cageSchedules as $schedule)
-                    <tr>
-                        <td>{{ $schedule->cageScheduleID }}</td>
-                        <td>{{ $schedule->scheduleID }}</td>
-                        <td>{{ $schedule->created_at }}</td>
-                        <td>{{ $schedule->updated_at }}</td>
-                    </tr>
-                    @endforeach
                 </tbody>
             </table>
 

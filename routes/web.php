@@ -43,6 +43,7 @@ Route::middleware(['auth', 'Admin'])->group(function () {
     Route::put('/users/update', [UserController::class, 'update'])->name('users.update'); // Update user
     Route::post('/users/delete', [UserController::class, 'showDelete'])->name('users.showDelete'); // Show delete confirmation
     Route::delete('/users/destroy', [UserController::class, 'destroy'])->name('users.destroy'); // Delete user
+    Route::post('/users/disable', [UserController::class, 'disable'])->name('users.disable');
 
     Route::get('/task-schedulings', [TaskSchedulingController::class, 'index'])->name('task-schedulings.index'); // List all task schedulings
     Route::get('/task-schedulings/create', [TaskSchedulingController::class, 'create'])->name('task-schedulings.create'); // Show create task scheduling form
@@ -137,10 +138,11 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/chickens/destroy', [ChickenController::class, 'destroy'])->name('chickens.destroy'); // Delete by group
     Route::delete('/chickens/destroyGrouped', [ChickenController::class, 'destroyGrouped'])->name('chickens.destroyGrouped'); // Delete by group
 
-    Route::get('/eggGrading', function () {
-        return view('eggGrading');
-    });
+    // Route::get('/eggGrading', function () {
+    //     return view('eggGrading');
+    // });
 
+    Route::get('/eggGrading',[EggGradingController::class, 'eggGrading'])->name('eggGrading');
     Route::post('/gradeEggs', [EggGradingController::class, 'gradeEggs'])->name('/gradeEggs');
     Route::get('/eggResults', [EggGradingController::class, 'index'])->name('/eggResults');
     Route::get('/eggs/create', [EggGradingController::class, 'create'])->name('egg_grading.create');
