@@ -30,12 +30,6 @@
         <i class="fas fa-plus"></i> Add New Task Scheduling
     </a>
 
-    @if (session('success'))
-    <div class="alert alert-success">
-        {{ session('success') }}
-    </div>
-    @endif
-
     <table class="table table-bordered">
         <thead>
             <tr>

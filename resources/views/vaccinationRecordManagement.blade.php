@@ -77,6 +77,7 @@
                 <td>{{ $firstRecord->status ?? 'N/A' }}</td>
                 <td>{{ $firstRecord->notes ?? 'N/A' }}</td>
                 <td>
+                    @if ($firstRecord->status !== 'completed')
                     <!-- Upgrade Form -->
                     <form action="{{ route('vaccination_records.editGroup') }}" method="POST" style="display:inline;">
                         @csrf
@@ -86,7 +87,7 @@
                         <input type="hidden" name="date_administered" value="{{ $firstRecord->date_administered }}">
                         <button type="submit" class="btn btn-primary btn-sm">Upgrade</button>
                     </form>
-
+                
                     <!-- Delete Form -->
                     <form action="{{ route('vaccination_records.deleteGroup') }}" method="POST" style="display:inline;">
                         @csrf
@@ -100,6 +101,9 @@
                             Delete Group
                         </button>
                     </form>
+                    @else
+                    <span class="badge badge-success">Completed</span>
+                    @endif
                 </td>
             </tr>
             @endforeach

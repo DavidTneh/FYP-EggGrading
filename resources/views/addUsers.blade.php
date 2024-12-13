@@ -19,7 +19,7 @@
     </div>
     @endif
 
-    @if (session('status'))
+    @if (session('status')) 
     <div class="alert alert-success alert-dismissible">
         <h5><i class="icon fas fa-check"></i> Success!</h5>
         {{ session('status') }}
@@ -49,6 +49,10 @@
                 <div class="form-group">
                     <label for="password">Password</label>
                     <input type="password" name="password" class="form-control" id="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="password_confirmation">Confirm Password</label>
+                    <input type="password" name="password_confirmation" class="form-control" id="password_confirmation" required>
                 </div>
                 <div class="form-group">
                     <label for="role">Role</label>

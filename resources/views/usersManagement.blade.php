@@ -13,21 +13,21 @@
             <h1 class="mt-5">Users</h1>
 
             @if (session('success'))
-                <div class="alert alert-success">
-                    {{ session('success') }}
-                </div>
-                @endif
-                
-                @if ($errors->any())
-                <div class="alert alert-danger">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-                @endif
-                
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+            @endif
+
+            @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul>
+                    @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+
             <a href="{{ route('users.create') }}" class="btn btn-success mb-3 float-right">Add New User</a>
 
             <!-- Users List Table -->
@@ -96,11 +96,10 @@
                 </tbody>
             </table>
 
-            <!-- Pagination Controls -->
-            <div class="mt-3">
-                {{ $users->links() }}
+            <div class="mt-3 d-flex justify-content-center">
+                {{ $users->links('pagination::bootstrap-4') }}
             </div>
         </div>
     </div>
 </div>
-@stop
+@endsection

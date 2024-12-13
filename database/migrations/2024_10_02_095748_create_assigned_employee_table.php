@@ -11,9 +11,9 @@ return new class extends Migration
         Schema::create('assignedEmployee', function (Blueprint $table) {
             $table->increments('assignedID');
             $table->unsignedInteger('userID');
-            $table->foreign('userID')->references('userID')->on('user');
+            $table->foreign('userID')->references('userID')->on('user')->onDelete('cascade');;
             $table->unsignedInteger('scheduleID');
-            $table->foreign('scheduleID')->references('scheduleID')->on('taskScheduling');
+            $table->foreign('scheduleID')->references('scheduleID')->on('taskScheduling')->onDelete('cascade');;
             $table->timestamps();
         });
     }

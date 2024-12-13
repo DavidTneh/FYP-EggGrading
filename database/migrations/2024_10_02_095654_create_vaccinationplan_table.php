@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('vaccinationplan', function (Blueprint $table) {
             $table->increments('vaccinationplanID'); // Primary Key
             $table->unsignedInteger('vaccinationtypeID'); // Foreign Key
-            $table->foreign('vaccinationtypeID')->references('vaccinationtypeID')->on('vaccinationtype');
+            $table->foreign('vaccinationtypeID')->references('vaccinationtypeID')->on('vaccinationtype')->onDelete('cascade');
             $table->integer('vaccinationPerChicken');
             $table->integer('ageThreshold');
             $table->timestamps();

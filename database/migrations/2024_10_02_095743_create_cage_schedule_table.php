@@ -11,9 +11,9 @@ return new class extends Migration
         Schema::create('cageSchedule', function (Blueprint $table) {
             $table->increments('cageScheduleID');
             $table->unsignedInteger('cageID');
-            $table->foreign('cageID')->references('cageID')->on('cage');
+            $table->foreign('cageID')->references('cageID')->on('cage')->onDelete('cascade');;
             $table->unsignedInteger('scheduleID');
-            $table->foreign('scheduleID')->references('scheduleID')->on('taskScheduling');
+            $table->foreign('scheduleID')->references('scheduleID')->on('taskScheduling')->onDelete('cascade');;
             $table->date('start_date')->nullable()->comment('Start date for the schedule');
             $table->date('end_date')->nullable()->comment('End date for the schedule');
             $table->date('culling_date')->nullable()->comment('Date when culling should occur');

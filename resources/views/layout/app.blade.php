@@ -13,9 +13,11 @@
   <link rel="stylesheet" href="../../../plugins/fontawesome-free/css/all.min.css">
   <!-- Theme style -->
   <link rel="stylesheet" href="../../../dist/css/adminlte.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
 <body class="hold-transition sidebar-mini">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
   <!-- Site wrapper -->
   <div class="wrapper">
     <!-- Navbar -->
@@ -48,45 +50,7 @@
           <a href="{{ route('task-schedulings.calendar') }}" class="nav-link" style="color: #ffffff;">Calender</a>
           @endif
         </li>
-        <li class="nav-item d-none d-sm-inline-block">
-          @if(Auth::user()->roleID === 1)
-          <a href="{{ route('dashboard.index') }}" class="nav-link" style="color: #ffffff;">Report</a>
-          @endif
-        </li>
       </ul>
-
-      <!-- Right navbar links
-      <ul class="navbar-nav ml-auto">
-         Navbar Search -->
-      <li class="nav-item">
-        {{-- <a class="nav-link" data-widget="navbar-search" href="#" role="button" style="color: #ffffff;">
-          <i class="fas fa-search"></i>
-        </a>
-        <div class="navbar-search-block" style="background-color: #343a40; border: 1px solid #ffc107;">
-          <form class="form-inline">
-            <div class="input-group input-group-sm">
-              <input class="form-control form-control-navbar" type="search" placeholder="Search" aria-label="Search"
-                style="background-color: #6c757d; color: #ffffff;">
-              <div class="input-group-append">
-                <button class="btn btn-navbar" type="submit" style="background-color: #ffc107; color: #343a40;">
-                  <i class="fas fa-search"></i>
-                </button>
-                <button class="btn btn-navbar" type="button" data-widget="navbar-search"
-                  style="background-color: #ffc107; color: #343a40;">
-                  <i class="fas fa-times"></i>
-                </button>
-              </div>
-            </div>
-          </form>
-        </div> --}}
-      </li>
-
-      <!-- Notifications Dropdown Menu -->
-      <li class="nav-item">
-        <a class="nav-link" data-widget="fullscreen" href="#" role="button" style="color: #ffffff;">
-          <i class="fas fa-expand-arrows-alt"></i>
-        </a>
-      </li>
 
       </ul>
     </nav>

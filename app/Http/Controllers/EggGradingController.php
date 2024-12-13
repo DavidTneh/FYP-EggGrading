@@ -13,24 +13,46 @@ class EggGradingController extends Controller
 {
     public function index(Request $request)
     {
-        $start_date = $request->input('start_date');
-        $end_date = $request->input('end_date');
+        try {
+            // Validate the input dates
+            $validatedData = $request->validate([
+                'start_date' => 'nullable|date', // Optional, must be a valid date
+                'end_date' => 'nullable|date|after_or_equal:start_date', // Optional, must be after or equal to start_date
+            ], [
+                'start_date.date' => 'The start date must be a valid date.',
+                'end_date.date' => 'The end date must be a valid date.',
+                'end_date.after_or_equal' => 'The end date must be after or equal to the start date.',
+            ]);
 
-        // Build the query to group by date only (ignoring the time part), along with other fields
-        $query = Egg::with('eggGrade')
-        ->selectRaw('DATE(created_at) as date, MAX(updated_at) as updated_at, type, description, eggGradeID, COUNT(*) as quantity')
-        ->groupBy(DB::raw('DATE(created_at)'), 'type', 'description', 'eggGradeID');
+            // Get validated input
+            $start_date = $validatedData['start_date'] ?? null;
+            $end_date = $validatedData['end_date'] ?? null;
 
-        // If start date and end date are provided, filter the results based on the date part of created_at
-        if ($start_date && $end_date) {
-            $query->whereBetween(DB::raw('DATE(created_at)'), [$start_date, $end_date]);
+            // Build the query
+            $query = Egg::with('eggGrade')
+            ->selectRaw('DATE(created_at) as date, MAX(updated_at) as updated_at, type, description, eggGradeID, COUNT(*) as quantity')
+            ->groupBy(DB::raw('DATE(created_at)'), 'type', 'description', 'eggGradeID');
+
+            // Filter results based on dates if provided
+            if ($start_date && $end_date) {
+                $query->whereBetween(DB::raw('DATE(created_at)'), [$start_date, $end_date]);
+            }
+
+            // Paginate results
+            $eggs = $query->paginate(10);
+
+            // Return the view with paginated results
+            return view('/eggResults', compact('eggs'));
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Handle validation errors
+            return back()->withErrors($e->validator)->withInput();
+        } catch (\Exception $e) {
+            // Log the exception and show a generic error message
+            Log::error("Error in EggGradingController@index: " . $e->getMessage());
+            return back()->withErrors('An unexpected error occurred while fetching egg records. Please try again later.');
         }
-
-        // Paginate the results
-        $eggs = $query->paginate(10);  // Paginate 10 items per page
-
-        return view('/eggResults', compact('eggs'));
     }
+
 
 
 
@@ -187,23 +209,26 @@ class EggGradingController extends Controller
 
             $current_quantity = $eggs->count();  // Get current count of matching records
 
-            // 1. Update all existing records with the new values (without changing the quantity)
-            Egg::where('created_at', $receivedDate)
-                ->where('type', $type)
-                ->where('description', $description)
-                ->where('eggGradeID', $eggGradeID)
-                ->update([
-                    'type' => $new_type,
-                    'description' => $new_description,
-                    'eggGradeID' => $new_grade,
-                    'cageID' => $new_cage,
-                ]);
-
+            if ($form_quantity == $current_quantity){
+                // dd("Im here");
+                // 1. Update all existing records with the new values (without changing the quantity)
+                Egg::where('created_at', $receivedDate)
+                    ->where('type', $type)
+                    ->where('description', $description)
+                    ->where('eggGradeID', $eggGradeID)
+                    ->update([
+                        'type' => $new_type,
+                        'description' => $new_description,
+                        'eggGradeID' => $new_grade,
+                        'cageID' => $new_cage,
+                    ]);
+            }
+ 
             // 2. Adjust the quantity if necessary
             if ($form_quantity > $current_quantity) {
                 // Add eggs if the form quantity is greater than the current quantity
                 $add_quantity = $form_quantity - $current_quantity;
-
+                // dd($add_quantity);
                 for ($i = 0; $i < $add_quantity; $i++) {
                     Egg::create([
                         'type' => $new_type,
@@ -217,6 +242,7 @@ class EggGradingController extends Controller
             } elseif ($form_quantity < $current_quantity) {
                 // Remove the extra eggs if the form quantity is less than the current quantity
                 $remove_quantity = $current_quantity - $form_quantity;
+                // dd($remove_quantity);
 
                 // Remove the excess eggs from the existing records
                 Egg::where('created_at', $receivedDate)
@@ -421,63 +447,62 @@ class EggGradingController extends Controller
             'D' => 0,  // Grade D: Below 55g
         ];
 
-        // Define the mapping of ID to weight or special grade
         $idToWeight = [
-            1 => 47.14,
-            2 => 47.17,
-            3 => 50.96,
-            4 => 50.96,
-            5 => 51.29,
-            6 => 51.34,
-            7 => 51.38,
-            8 => 51.53,
-            9 => 51.90,
-            10 => 52.01,
-            11 => 52.08,
-            12 => 52.41,
-            13 => 52.48,
-            14 => 52.65,
-            15 => 52.77,
-            16 => 52.93,
-            17 => 56.31,
-            18 => 58.39,
-            19 => 59.23,
-            20 => 60.00,
-            21 => 60.02,
-            22 => 60.04,
-            23 => 60.49,
-            24 => 60.56,
-            25 => 61.55,
-            26 => 62.70,
-            27 => 63.51,
-            28 => 63.83,
-            29 => 64.00,
-            30 => 64.13,
-            31 => 65.26,
-            32 => 66.05,
-            33 => 66.09,
-            34 => 66.41,
-            35 => 66.80,
-            36 => 67.08,
-            37 => 67.10,
-            38 => 67.75,
-            39 => 67.83,
-            40 => 70.52,
-            41 => 71.57,
-            42 => 73.23,
-            43 => 73.35,
-            44 => 73.41,
-            45 => 74.07,
-            46 => 74.19,
-            47 => 74.32,
-            48 => 74.67,
-            49 => 74.89,
-            50 => 74.98,
-            51 => 77.27,
-            52 => 80.64,
-            53 => 82.90,
-            54 => 89.50,
-            55 => 92.62,
+            1 => 50,
+            2 => 51,
+            3 => 52,
+            4 => 53,
+            5 => 54,
+            6 => 50.5,
+            7 => 51.5,
+            8 => 52.5,
+            9 => 53.5,
+            10 => 54.5,
+            11 => 55,
+            12 => 55.1,
+            13 => 55.2,
+            14 => 55.3,
+            15 => 55.4,
+            16 => 55.5,
+            17 => 55.6,
+            18 => 55.7,
+            19 => 55.8,
+            20 => 55.9,
+            21 => 60,
+            22 => 61,
+            23 => 62,
+            24 => 63,
+            25 => 64,
+            26 => 60.5,
+            27 => 61.5,
+            28 => 62.5,
+            29 => 63.5,
+            30 => 64.5,
+            31 => 65,
+            32 => 65,
+            33 => 65,
+            34 => 65,
+            35 => 65,
+            36 => 65,
+            37 => 65,
+            38 => 65,
+            39 => 65,
+            40 => 65,
+            41 => 65,
+            42 => 65,
+            43 => 65,
+            44 => 65,
+            45 => 65,
+            46 => 65,
+            47 => 65,
+            48 => 65,
+            49 => 65,
+            50 => 65,
+            51 => 65,
+            52 => 65,
+            53 => 65,
+            54 => 65,
+            55 => 65,
             56 => 'A', // Special case for Legg
             57 => 'B', // Special case for Megg
             58 => 'C', // Special case for Segg
@@ -522,7 +547,7 @@ class EggGradingController extends Controller
         // Store the final grade with cage information
         Log::info("Final Egg Grade (Malaysia): " . $finalGrade);
         $this->storeEggGrade('Egg', $finalGrade, $cageID);
-
+        
         return $finalGrade;
     }
 
@@ -543,79 +568,6 @@ class EggGradingController extends Controller
             'cageID' => $cageID,
         ]);
     }
-
-
-
-    // public function gradeLiveEgg(Request $request)
-    // {
-    //     Log::info("Processing live frames for grading.");
-
-    //     try {
-    //         // Log the incoming request for debugging
-    //         Log::info("Request payload: ", $request->all());
-
-    //         // Decode the base64 images
-    //         $frame1 = $this->decodeImage($request->input('frame1'));
-    //         $frame2 = $this->decodeImage($request->input('frame2'));
-            
-
-    //         // Classify each frame
-    //         $grade1 = $this->classifyEggDirect($frame1);
-    //         $grade2 = $this->classifyEggDirect($frame2);
-    //         Log::info("Checking Grade 1." .$grade1);
-    //         Log::info("Checking Grade 2." .$grade2);
-
-    //         // Determine the final grade
-    //         $finalGrade = $this->determineFinalGrade($grade1, $grade2);
-    //         Log::info("Checking Final Grade." . $finalGrade);
-
-    //         return response()->json([
-    //             'grade1' => $grade1,
-    //             'grade2' => $grade2,
-    //             'grade' => $finalGrade,
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         Log::error("Error during live grading: " . $e->getMessage());
-    //         return response()->json(['error' => 'An error occurred during grading.'], 500);
-    //     }
-    // }
-
-    // private function classifyEggDirect($imageData)
-    // {
-    //     // Convert image data into a format that TensorFlow can process
-    //     $command = escapeshellcmd("python ..\\CoreTech\\liveclassify.py");
-    //     $process = proc_open(
-    //         $command,
-    //         [
-    //             0 => ['pipe', 'r'], // stdin
-    //             1 => ['pipe', 'w'], // stdout
-    //             2 => ['pipe', 'w'], // stderr
-    //         ],
-    //         $pipes
-    //     );
-
-    //     if (is_resource($process)) {
-    //         fwrite($pipes[0], $imageData); // Send the image data
-    //         fclose($pipes[0]);
-
-    //         $output = stream_get_contents($pipes[1]);
-    //         fclose($pipes[1]);
-
-    //         $error = stream_get_contents($pipes[2]);
-    //         fclose($pipes[2]);
-
-    //         $returnCode = proc_close($process);
-
-    //         if ($returnCode !== 0) {
-    //             Log::error("Python script error: " . $error);
-    //             throw new \Exception("Python script execution failed.");
-    //         }
-
-    //         return intval(trim($output)); // Return the classification result
-    //     } else {
-    //         throw new \Exception("Failed to execute Python script.");
-    //     }
-    // }
 
 
 

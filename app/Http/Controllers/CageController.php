@@ -123,11 +123,6 @@ class CageController extends Controller
             $cageID = $request->input('cageID');
             $cage = Cage::findOrFail($cageID);
 
-            Chicken::where('cageID', $cageID)->delete();
-            Egg::where('cageID', $cageID)->delete();
-            VaccinationPlan::where('cageID', $cageID)->delete();
-            CageSchedule::where('cageID', $cageID)->delete();
-
             $cage->delete();
 
             return redirect()->route('cages.index')->with('success', 'Cage and all related data deleted successfully.');

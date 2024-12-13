@@ -66,6 +66,17 @@
                     </select>
                 </div>
 
+                <div class="form-group">
+                    <label for="new_type">Type</label>
+                    <select name="new_type" class="form-control" id="new_type" required>
+                        <option value="Brown Egg">Brown Egg</option>
+                        <option value="White Egg">White Egg</option>
+                        <option value="Free Range Egg">Free Range Egg</option>
+                        <option value="Organic Egg">Organic Egg</option>
+                        <option value="Cage-Free Egg">Cage-Free Egg</option>
+                    </select>
+                </div>
+
                 <!-- Display the current description with option to change -->
                 <div class="form-group">
                     <label for="description">Description</label>

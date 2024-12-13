@@ -43,7 +43,14 @@
                 </div>
                 <div class="form-group">
                     <label for="type">Type</label>
-                    <input type="text" name="type" class="form-control" id="type" required>
+                    <select name="type" class="form-control" id="type" required>
+                        <option value="" disabled selected>Select egg type</option>
+                        <option value="Brown Egg">Brown Egg</option>
+                        <option value="White Egg">White Egg</option>
+                        <option value="Free Range Egg">Free Range Egg</option>
+                        <option value="Organic Egg">Organic Egg</option>
+                        <option value="Cage-Free Egg">Cage-Free Egg</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="description">Description</label>

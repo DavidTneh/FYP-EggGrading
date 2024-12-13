@@ -11,10 +11,10 @@ return new class extends Migration
         Schema::create('chicken', function (Blueprint $table) {
             $table->increments('chickenID');
             $table->unsignedInteger('breedID');
-            $table->foreign('breedID')->references('breedID')->on('chickenBreeds');
+            $table->foreign('breedID')->references('breedID')->on('chickenBreeds')->onDelete('cascade');;
             $table->date('dob');
             $table->unsignedInteger('cageID');
-            $table->foreign('cageID')->references('cageID')->on('cage');
+            $table->foreign('cageID')->references('cageID')->on('cage')->onDelete('cascade');;
             $table->timestamps();
         });
     }

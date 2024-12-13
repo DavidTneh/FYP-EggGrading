@@ -22,12 +22,12 @@
             </div>
             @endif
 
-@if (session('success'))
+            @if (session('success'))
             <div class="alert alert-success">
                 {{ session('success') }}
             </div>
             @endif
-            
+
             <div class="card">
                 <div class="card-body">
                     <h3 class="card-title"><strong>{{ $taskScheduling->taskName }}</strong></h3>

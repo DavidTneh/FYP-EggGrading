@@ -21,7 +21,7 @@ return new class extends Migration
             $table->foreign('vaccinationplanID')->references('vaccinationplanID')->on('vaccinationplan')->onDelete('cascade');
             $table->date('date_administered'); // Date when the vaccination was administered
             $table->unsignedInteger('administered_by');
-            $table->foreign('administered_by')->references('userID')->on('user');
+            $table->foreign('administered_by')->references('userID')->on('user')->onDelete('cascade');;
             $table->text('notes')->nullable(); // Optional notes about the vaccination
             $table->enum('status', ['pending', 'completed'])->default('pending'); // Status of the vaccination
             $table->timestamps(); // Created and updated timestamps
