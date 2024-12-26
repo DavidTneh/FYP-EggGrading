@@ -10,7 +10,7 @@
 <div class="container" style="width: 80%; margin-top: 20px;">
     <div class="row">
         <div class="col-md-12 mt-5">
-            <h1 class="mt-5">Collection Plans</h1>
+            <h1 class="mt-5">Egg Collection Plans</h1>
             @if ($errors->any())
             <div class="alert alert-danger alert-dismissible">
                 <h5><i class="icon fas fa-ban"></i> Error!</h5>
@@ -28,7 +28,7 @@
                 {{ session('status') }}
             </div>
             @endif
-            <a href="{{ route('collectionplan.create') }}" class="btn btn-success mb-3 float-right">Add New Collection
+            <a href="{{ route('collectionplan.create') }}" class="btn btn-success mb-3 float-right">Add New Egg Collection
                 Plan</a>
 
             <!-- Collection Plans List Table -->

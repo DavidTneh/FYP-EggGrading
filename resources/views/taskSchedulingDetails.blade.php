@@ -66,7 +66,7 @@
                     <hr>
                     <h4>Plans Associated with the Task</h4>
 
-                    <p class="card-text"><strong>Collection Plan:</strong></p>
+                    <p class="card-text"><strong>Egg Collection Plan:</strong></p>
                     @if ($collectionPlan)
                     <ul>
                         <li><strong>Time:</strong> {{ $collectionPlan->time }}</li>

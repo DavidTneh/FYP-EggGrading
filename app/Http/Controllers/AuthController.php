@@ -2,21 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Mail\AdminResetPassword;
-use App\Mail\LoginBlocked;
-use App\Models\LoginAttempt;
-use App\Models\User;
 use Carbon\Carbon;
+use App\Models\User;
+use App\Mail\LoginBlocked;
+use App\Mail\WelcomeEmail;
+use Illuminate\Support\Str;
+use App\Models\LoginAttempt;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Mail\AdminResetPassword;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends Controller
@@ -63,6 +65,11 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
         if ($user && !$user->status) {
             return back()->withErrors(['email' => 'Your account is disabled. Please contact the administrator.'])->withInput();
+        }
+
+        // Check if the email is verified
+        if ($user && !$user->verified) {
+            return back()->withErrors(['email' => 'Your email is not verified. Please check your inbox for the verification link.'])->withInput();
         }
 
         // Credentials for login
@@ -173,8 +180,15 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255|unique:user,name',
             'email' => 'required|string|email|max:255|unique:user,email',
-            'password' => 'required|string|min:8|confirmed',
-            'phoneNo' => ['required', 'regex:/^(01)[0-9]{8,9}$/'], // Malaysian phone number validation
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'max:20',
+                'confirmed',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/'
+            ], // Password strength validation
+            'phoneNo' => ['required', 'regex:/^(01)[0-9]{8,9}$/'],
             'dob' => ['required', 'date', function ($attribute, $value, $fail) {
                 $age = \Carbon\Carbon::parse($value)->age;
                 if ($age < 18) {
@@ -198,7 +212,7 @@ class AuthController extends Controller
             }
 
             if ($validator->errors()->has('password')) {
-                $errors['Password'] = 'Password must be at least 8 characters and match confirmation.';
+                $errors['Password'] = 'Password must meet the required criteria.';
             }
 
             if ($validator->errors()->has('phoneNo')) {
@@ -221,7 +235,7 @@ class AuthController extends Controller
         }
 
         // Create the user
-        User::create([
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
@@ -232,7 +246,33 @@ class AuthController extends Controller
             'status' => 1, // Active status
         ]);
 
-        return redirect()->route('admin.login')->with('success', 'Registration successful! Please login.');
+        // Generate a verification URL
+        $verificationUrl = URL::temporarySignedRoute(
+            'admin.verification.verify', // Route name
+            now()->addMinutes(60), // Expiration time
+            ['id' => $user->userID, 'hash' => sha1($user->email)]
+        );
+
+        // Send welcome email with verification link
+        Mail::to($user->email)->send(new WelcomeEmail($user, $verificationUrl));
+
+        return redirect()->route('admin.login')->with('status', 'Registration successful! Please check your email to verify your account.');
+    }
+
+
+    public function verify(Request $request)
+    {
+        $user = User::findOrFail($request->id);
+        $id = $user->userID;
+        if (!hash_equals(sha1($user->email), (string)$request->hash)) {
+            abort(403, 'Invalid verification link.');
+        }
+
+        if (!$user->verified) {
+            User::where('userID',$id)->update(['verified' => true]);
+        }
+
+        return redirect()->route('admin.login')->with('status', 'Email verified successfully. You can now log in.');
     }
 
 
@@ -342,12 +382,17 @@ class AuthController extends Controller
 
     public function changePassword(Request $request)
     {
-
         $errors = [];
-        
+
         $request->validate([
             'currentPassword' => 'required',
-            'newPassword' => 'required|min:8|confirmed', // Ensure password and confirm password match
+            'newPassword' => [
+                'required',
+                'min:8',
+                'max:20',
+                'confirmed', // Ensure password and confirmation match
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/'
+            ], // Password strength validation
         ]);
 
         // Retrieve the authenticated user
@@ -358,24 +403,20 @@ class AuthController extends Controller
             $errors['currentPassword'] = 'The current password is incorrect.';
         }
 
-        // Additional check for password confirmation (though the validation rule handles this)
-        if ($request->newPassword !== $request->newPassword_confirmation) {
-            $errors['newPassword'] = 'The new password and confirmation password do not match.';
-        }
-
         // If there are errors, redirect back with all errors and flash messages
         if (!empty($errors)) {
             return redirect()->back()
                 ->withErrors($errors)
                 ->with('error', 'Password change failed. Please correct the errors below.');
-        
         }
+
         // Update the password
         $user->password = Hash::make($request->newPassword);
         $user->save();
 
         return redirect()->back()->with('success', 'Password updated successfully.');
     }
+
 
 
 

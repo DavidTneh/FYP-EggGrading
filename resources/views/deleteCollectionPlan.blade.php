@@ -27,10 +27,10 @@
 <div class="container" style="width: 80%; margin-top: 20px;">
     <div class="row">
         <div class="col-md-12 mt-5">
-            <h1 class="mt-5">Delete Collection Plan <i class="fas fa-trash-alt"></i></h1>
+            <h1 class="mt-5">Delete Egg Collection Plan <i class="fas fa-trash-alt"></i></h1>
 
             <div class="alert alert-danger" role="alert">
-                <strong>Are you sure you want to delete this collection plan?</strong>
+                <strong>Are you sure you want to delete this egg collection plan?</strong>
                 <p>This will also delete all related tasks, assigned employees, and cage schedules associated with this
                     plan.</p>
             </div>

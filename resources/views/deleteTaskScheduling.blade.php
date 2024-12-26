@@ -64,7 +64,7 @@
                     @endif
 
                     <!-- Related Plans -->
-                    <h4>Collection Plan:</h4>
+                    <h4>Egg Collection Plan:</h4>
                     <p>{{ $collectionPlan->time ?? 'N/A' }} - {{ $collectionPlan->frequency ?? 'N/A' }}</p>
 
                     <h4>Feeding Plan:</h4>

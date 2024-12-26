@@ -229,6 +229,34 @@ class TaskSchedulingController extends Controller
         return redirect()->route('task-schedulings.index')->with('success', 'Task Scheduling updated successfully.');
     }
 
+    public function fetchBusyEmployees(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $planTime = $request->input('plan_time');
+
+        // Assume the task duration is 2 hours for simplicity
+        $planStartTime = Carbon::parse($planTime)->format('H:i:s');
+        $planEndTime = Carbon::parse($planTime)->addHours(2)->format('H:i:s');
+
+        // Fetch employees with overlapping tasks
+        $busyEmployees = AssignedEmployee::whereHas('taskScheduling', function ($query) use ($startDate, $endDate, $planStartTime, $planEndTime) {
+            $query->where(function ($q) use ($startDate, $endDate) {
+                $q->whereBetween('start_date', [$startDate, $endDate])
+                ->orWhereBetween('end_date', [$startDate, $endDate]);
+            })->where(function ($q) use ($planStartTime, $planEndTime) {
+                $q->whereBetween('start_time', [$planStartTime, $planEndTime])
+                ->orWhereBetween('end_time', [$planStartTime, $planEndTime]);
+            });
+        })->pluck('userID');
+
+        return response()->json($busyEmployees);
+    }
+
+
+
+
+
     public function showDelete(Request $request)
     {
         $request->validate([
@@ -602,31 +630,90 @@ class TaskSchedulingController extends Controller
 
     public function updateTaskStatus(Request $request)
     {
-        Log::info('updateTaskStatus method invoked', $request->all());
-        $request->validate([
-            'scheduleID' => 'required|exists:taskScheduling,scheduleID',
-            'log_date' => 'required|date',
-            'collectionStatus' => 'required|in:pending,in_progress,completed',
-            'feedingStatus' => 'required|in:pending,in_progress,completed',
-            'cullingStatus' => 'required|in:pending,in_progress,completed',
-        ]);
+        try {
+            Log::info('updateTaskStatus method invoked', $request->all());
 
-        // Insert or update the task status log
-        TaskStatusLog::updateOrCreate(
-            [
+            // Validation
+            $request->validate([
+                'scheduleID' => 'required|exists:taskScheduling,scheduleID',
+                'log_date' => 'required|date',
+                'collectionStatus' => 'required|in:pending,in_progress,completed',
+                'feedingStatus' => 'required|in:pending,in_progress,completed',
+                'cullingStatus' => 'required|in:pending,in_progress,completed',
+            ]);
+
+            // Find or create TaskStatusLog
+            $taskStatus = TaskStatusLog::updateOrCreate(
+                [
+                    'scheduleID' => $request->input('scheduleID'),
+                    'log_date' => $request->input('log_date'),
+                ],
+                [
+                    'collectionStatus' => $request->input('collectionStatus'),
+                    'feedingStatus' => $request->input('feedingStatus'),
+                    'cullingStatus' => $request->input('cullingStatus'),
+                    'status' => $request->input('status'),
+                ]
+            );
+
+            // Update TaskScheduling table
+            $taskScheduling = TaskScheduling::where('scheduleID', $request->input('scheduleID'))->first();
+            if ($taskScheduling) {
+                $taskScheduling->update([
+                    'collectionStatus' => $request->input('collectionStatus'),
+                    'feedingStatus' => $request->input('feedingStatus'),
+                    'cullingStatus' => $request->input('cullingStatus'),
+                    'status' => $this->determineOverallStatus(
+                        $request->input('collectionStatus'),
+                        $request->input('feedingStatus'),
+                        $request->input('cullingStatus')
+                    ),
+                    'updated_at' => now(), // Update timestamp
+                ]);
+
+                Log::info('TaskScheduling synchronized', ['scheduleID' => $taskScheduling->scheduleID]);
+            }
+
+            // Return success response
+            return redirect()->route('employee.listAssignedTasks')->with('success', 'Task status updated and synchronized successfully.');
+        } catch (\Exception $e) {
+            // Log the exception
+            Log::error('Error updating task status', [
+                'error_message' => $e->getMessage(),
                 'scheduleID' => $request->input('scheduleID'),
-                'log_date' => $request->input('log_date'),
-            ],
-            [
-                'collectionStatus' => $request->input('collectionStatus'),
-                'feedingStatus' => $request->input('feedingStatus'),
-                'cullingStatus' => $request->input('cullingStatus'),
-            ]
-        );
+            ]);
 
-        return redirect()->route('employee.listAssignedTasks')->with('success', 'Task status updated successfully.');
+            // Return failure response
+            return redirect()->route('employee.listAssignedTasks')->withErrors('Failed to update task status. Please try again.');
+        }
     }
 
+    /**
+     * Determine the overall task status based on individual statuses.
+     *
+     * @param string $collectionStatus
+     * @param string $feedingStatus
+     * @param string $cullingStatus
+     * @return string
+     */
+    private function determineOverallStatus($collectionStatus, $feedingStatus, $cullingStatus)
+    {
+        if ($collectionStatus === 'completed' && $feedingStatus === 'completed' && $cullingStatus === 'completed') {
+            return 'completed';
+        }
+
+        if ($collectionStatus === 'in_progress' || $feedingStatus === 'in_progress' || $cullingStatus === 'in_progress'
+        ) {
+            return 'in_progress';
+        }
+
+        return 'pending';
+    }
+
+
+
+ 
+ 
     public function showUpdateVaccinationStatusForm(Request $request)
     {
         $request->validate([

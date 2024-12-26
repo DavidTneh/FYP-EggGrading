@@ -22,6 +22,7 @@ return new class extends Migration
             $table->boolean('status')->default(true);
             $table->string('session_id')->nullable();
             $table->timestamp('reset_time')->nullable(); // Correct way to add reset_time column
+            $table->boolean('verified')->default(false); // Email verification status
             $table->timestamps(); // created_at and updated_at
         });
 

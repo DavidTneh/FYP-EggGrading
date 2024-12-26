@@ -26,3 +26,5 @@ Route::post('/gradeLiveEgg', [EggGradingController::class, 'gradeLiveEgg']);
 
 
 Route::get('/api/get-calendar-data', [TaskSchedulingController::class, 'getCalendarData']);
+
+Route::get('/fetch-busy-employees', [TaskSchedulingController::class, 'fetchBusyEmployees']);

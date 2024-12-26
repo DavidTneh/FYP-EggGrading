@@ -3,14 +3,14 @@
 @section('title', 'Update Collection Plan')
 
 @section('content_header')
-<h1>Update Collection Plan</h1>
+<h1>Update Egg Collection Plan</h1>
 @stop
 
 @section('content')
 <div class="container" style="width: 80%; margin-top: 20px;">
     <div class="row">
         <div class="col-md-12 mt-5">
-            <h1 class="mt-5">Update Collection Plan <i class="fas fa-edit"></i></h1>
+            <h1 class="mt-5">Update Egg Collection Plan <i class="fas fa-edit"></i></h1>
             @if ($errors->any())
             <div class="alert alert-danger">
                 <ul>
@@ -55,7 +55,7 @@
                         <option value="0" {{ !$collectionPlan->is_repeating ? 'selected' : '' }}>No</option>
                     </select>
                 </div>
-                <button type="submit" class="btn btn-success float-right">Update Collection Plan</button>
+                <button type="submit" class="btn btn-success float-right">Update Egg Collection Plan</button>
             </form>
         </div>
     </div>

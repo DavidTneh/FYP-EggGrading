@@ -101,6 +101,10 @@ Route::middleware(['auth', 'Admin'])->group(function () {
     Route::put('/vaccination_records/update-group', [VaccinationRecordsController::class, 'updateGroup'])->name('vaccination_records.updateGroup');
     Route::delete('/vaccination_records/deleteGroup', [VaccinationRecordsController::class, 'deleteGroup'])->name('vaccination_records.deleteGroup');
 
+    Route::get('/fetch-busy-employees', [TaskSchedulingController::class, 'fetchBusyEmployees']);
+    
+    Route::get('/download-report', [ReportController::class, 'downloadPDF'])->name('report.download');
+
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -206,6 +210,10 @@ Route::prefix('admin')->name('admin.')->middleware(RedirectIfAuthenticated::clas
 
     // Handle registration submission
     Route::post('/register', [AuthController::class, 'register'])->name('register.post');
+
+    Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify'])
+    ->middleware(['signed']) // Ensures the request signature is valid
+    ->name('verification.verify');
 
     // Forgot Password Routes 
     // Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('forgot_password');

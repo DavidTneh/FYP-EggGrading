@@ -7,66 +7,80 @@ use App\Models\Cage;
 use App\Models\Chicken;
 use App\Models\EggGrade;
 use Illuminate\Http\Request;
-use App\Models\TaskScheduling;
 use App\Models\TaskStatusLog;
+use App\Models\TaskScheduling;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\VaccinationRecords;
 use Illuminate\Support\Facades\DB;
+
 
 class ReportController extends Controller
 {
     public function index(Request $request)
     {
-        $reportType = $request->get('report_type', 'summary'); // Default to 'summary'
+        $reportType = $request->get('report_type', 'summary');
+        $startDate = $request->get('start_date', now()->startOfMonth()->toDateString());
+        $endDate = $request->get('end_date', now()->endOfMonth()->toDateString());
 
-        // Overall counts
-        $totalChickens = Chicken::count();
-        $totalVaccinatedChickens = Chicken::whereHas('vaccinationRecords')->count();
-        $totalNotVaccinatedChickens = $totalChickens - $totalVaccinatedChickens;
+        // Egg grades mapping
+        $eggGrades = ['A', 'B', 'C', 'D'];
 
-        // Egg trends
-        $eggTrends = Egg::selectRaw('DATE(created_at) as date, COUNT(*) as total')
-        ->groupBy('date')
-        ->orderBy('date', 'DESC')
-        ->limit(7)
-            ->get()
-            ->toArray();       
+        // Egg production data grouped by date and grade
+        $eggProductionData = Egg::selectRaw('DATE(created_at) as date, eggGradeID, COUNT(*) as total_eggs')
+        ->whereBetween('created_at', [$startDate, $endDate])
+            ->groupBy('date', 'eggGradeID')
+            ->orderBy('date', 'ASC')
+            ->get();
 
-        // Task breakdown
-        $taskStatuses = TaskScheduling::selectRaw('status, COUNT(*) as total')
-        ->groupBy('status')
-        ->pluck('total', 'status');
+        $eggChartData = [];
+        $formattedEggData = [];
 
-        // Cage details
-        $cageDetails = Cage::withCount('chickens')
-        ->withCount(['chickens as vaccinated_chickens' => function ($query) {
-            $query->whereHas('vaccinationRecords');
-        }])->get();
+        foreach ($eggProductionData as $data) {
+            $date = $data->date;
+            $grade = $eggGrades[$data->eggGradeID - 1] ?? 'Unknown';
 
-        // Summary data
-        $summaryData = [
-            'totalEggs' => Egg::whereDate('created_at', today())->count(),
-            'pendingTasks' => $taskStatuses['pending'] ?? 0,
-            'completedTasks' => $taskStatuses['completed'] ?? 0,
-            'totalChickens' => $totalChickens,
-            'totalCages' => Cage::count(),
-            'totalVaccinatedChickens' => $totalVaccinatedChickens,
-            'totalNotVaccinatedChickens' => $totalNotVaccinatedChickens,
-            'vaccinatedPercentage' => $totalChickens > 0 ? round(($totalVaccinatedChickens / $totalChickens) * 100, 2) : 0,
-            'eggTrends' => $eggTrends,
-        ];
+            // For table
+            $formattedEggData[$date][$grade] = $data->total_eggs;
 
-        $detailsData = [
-            'cages' => $cageDetails,
-            'taskBreakdown' => $taskStatuses,
-        ];
+            // For chart
+            $eggChartData[$date][$grade] = $data->total_eggs;
+        }
 
+        foreach ($formattedEggData as $date => &$grades) {
+            foreach ($eggGrades as $grade) {
+                $grades[$grade] = $grades[$grade] ?? 0;
+            }
+        }
 
-        
-
-        return view('reportManagement', compact('summaryData', 'detailsData', 'reportType'));
+        return view('reportManagement', [
+            'reportType' => $reportType,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'eggData' => $formattedEggData,
+            'eggChartData' => json_encode($eggChartData), // Pass as JSON for chart
+            'summaryData' => [
+                'totalEggs' => Egg::whereDate('created_at', today())->count(),
+                'pendingTasks' => 10,
+                'totalChickens' => Chicken::count(),
+            ]
+        ]);
     }
 
+    public function downloadPDF(Request $request)
+    {
+        $startDate = $request->get('start_date', now()->startOfMonth());
+        $endDate = $request->get('end_date', now()->endOfMonth());
 
+        $eggData = Egg::selectRaw('DATE(created_at) as date, COUNT(*) as total_eggs')
+        ->whereBetween('created_at', [$startDate, $endDate])
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+
+        $pdf = Pdf::loadView('pdf.report', ['eggData' => $eggData, 'startDate' => $startDate, 'endDate' => $endDate]);
+
+        return $pdf->download('egg_production_report.pdf');
+    }
 
     public function eggProductionReport()
     {

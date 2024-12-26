@@ -197,7 +197,7 @@ class VaccinationRecordsController extends Controller
         try {
             // Fetch the vaccination record
             $vaccinationRecord = VaccinationRecords::findOrFail($id);
-
+            
             // Update the record with validated data
             $vaccinationRecord->update($validatedData);
 

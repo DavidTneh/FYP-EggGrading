@@ -198,7 +198,7 @@
               <a href="{{ route('collectionplan.index') }}" class="nav-link">
                 <i class="fas fa-hand-holding nav-icon"></i>
                 <p>
-                  Collection Plan
+                  Egg Collection Plan
                 </p>
               </a>
               @endif

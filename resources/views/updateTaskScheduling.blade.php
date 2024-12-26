@@ -45,7 +45,7 @@
         </div>
 
         <div class="form-group">
-            <label for="collectionPlanID">Collection Plan</label>
+            <label for="collectionPlanID">Egg Collection Plan</label>
             <select class="form-control" id="collectionPlanID" name="collectionPlanID" required>
                 @foreach($collectionPlans as $plan)
                 <option value="{{ $plan->collectionplanID }}" {{ $taskScheduling->collectionplanID ==

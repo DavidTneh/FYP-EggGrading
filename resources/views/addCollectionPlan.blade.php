@@ -10,7 +10,7 @@
 <div class="container" style="width: 80%; margin-top: 20px;">
     <div class="row">
         <div class="col-md-12 mt-5">
-            <h1 class="mt-5">Create Collection Plan <i class="fas fa-plus"></i></h1>
+            <h1 class="mt-5">Create Egg Collection Plan <i class="fas fa-plus"></i></h1>
 
             @if ($errors->any())
             <div class="alert alert-danger alert-dismissible">
